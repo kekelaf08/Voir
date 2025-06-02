@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secondaire 3 - Gestion des Groupes</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Animation CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        /* Même CSS que les autres fichiers */
+        :root {
+            --primary-color: #4a7bff;
+            --primary-light: #6691ff;
+            --primary-dark: #3366ff;
+            --secondary-color: #64748b;
+            --success-color: #22c55e;
+            --info-color: #0ea5e9;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-hover: #2d3748;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: #334155;
+            
+            --glass-bg: rgba(30, 41, 59, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --gradient-primary: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            --gradient-success: linear-gradient(135deg, var(--success-color), #16a34a);
+            --gradient-dark: linear-gradient(135deg, #1e293b, #0f172a);
+            
+            --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            --font-size-base: 0.95rem;
+            --font-size-lg: 1.125rem;
+            --font-size-sm: 0.875rem;
+            --line-height-base: 1.6;
+            
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            font-family: var(--font-family-base);
+            font-size: var(--font-size-base);
+            line-height: var(--line-height-base);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .navbar {
+            background: var(--gradient-dark);
+            border-bottom: 1px solid var(--border-color);
+            padding: var(--spacing-md) 0;
+        }
+
+        .stats-card, .group-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            transition: var(--transition-base);
+            border-radius: 12px;
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .stats-card:hover, .group-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .section-title {
+            color: var(--text-primary);
+            font-size: 1.75rem;
+            font-weight: 700;
+            line-height: var(--line-height-heading);
+            letter-spacing: var(--letter-spacing-heading);
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 2px solid var(--primary-light);
+            position: relative;
+        }
+
+        .group-title {
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .group-members {
+            color: var(--text-secondary);
+        }
+
+        .project-title {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .project-description {
+            color: var(--text-secondary);
+        }
+
+        .project-option {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .project-option:hover {
+            transform: translateX(10px) scale(1.02);
+            background: var(--bg-hover);
+        }
+
+        .project-option.selected {
+            background: var(--primary-color);
+            border-color: var(--primary-light);
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .modal-header {
+            background: var(--gradient-dark);
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            color: var(--text-primary);
+        }
+
+        .form-label {
+            color: var(--text-secondary);
+        }
+
+        .form-control, .form-select {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .form-control:focus, .form-select:focus {
+            background: var(--bg-hover);
+            border-color: var(--primary-color);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 2px rgba(74, 123, 255, 0.25);
+        }
+
+        .btn-success {
+            background: var(--gradient-success);
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            border: none;
+        }
+
+        .alert {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+        }
+
+        @keyframes glow {
+            0% {
+                box-shadow: 0 0 5px rgba(74, 123, 255, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(74, 123, 255, 0.4);
+            }
+            100% {
+                box-shadow: 0 0 5px rgba(74, 123, 255, 0.2);
+            }
+        }
+
+        .stats-card:hover {
+            animation: glow 2s infinite;
+        }
+
+        @media (max-width: 768px) {
+            .stats-card, .group-card {
+                backdrop-filter: blur(5px);
+            }
+            
+            .project-option:hover {
+                transform: translateX(5px);
+            }
+            
+            .section-title {
+                font-size: 1.5rem;
+            }
+            
+            .stats-number {
+                font-size: 2rem;
+            }
+            
+            .project-title {
+                font-size: 1rem;
+            }
+            
+            .project-description {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark mb-4">
+        <div class="container">
+            <span class="navbar-brand">
+                <i class="fas fa-school me-2"></i>
+                Secondaire 3
+            </span>
+            <a href="voteadmin.html" class="btn btn-light btn-sm">
+                <i class="fas fa-arrow-left me-2"></i>
+                Retour à l'administration
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Statistiques -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">4</div>
+                    <div class="stats-label">Groupes</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">12</div>
+                    <div class="stats-label">Élèves</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">3</div>
+                    <div class="stats-label">Projets</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">18</div>
+                    <div class="stats-label">Votes reçus</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="section-title mb-0">Gestion des Groupes</h2>
+            <button class="btn btn-success" id="addGroupBtn" data-bs-toggle="modal" data-bs-target="#addGroupModal">
+                <i class="fas fa-plus me-2"></i>
+                Nouveau groupe
+            </button>
+        </div>
+
+        <!-- Liste des groupes -->
+        <div class="row" id="groupsList">
+            <!-- Les groupes seront ajoutés dynamiquement ici -->
+        </div>
+    </div>
+
+    <!-- Modal d'ajout/modification de groupe -->
+    <div class="modal fade" id="addGroupModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-users me-2"></i>
+                        Nouveau groupe
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="groupForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Nom du groupe</label>
+                                <input type="text" class="form-control" name="groupName" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Nombre de membres</label>
+                                <input type="number" class="form-control" name="members" min="1" value="4" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Titre du projet</label>
+                                <input type="text" class="form-control" name="projectTitle" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Description du projet</label>
+                                <textarea class="form-control" name="projectDescription" rows="3"></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Statut</label>
+                                <select class="form-select" name="status" required>
+                                    <option value="actif">Actif</option>
+                                    <option value="inactif">Inactif</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" onclick="saveGroup()">
+                        <i class="fas fa-save me-2"></i>
+                        Enregistrer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bouton de basculement du mode sombre -->
+    <button class="theme-toggle" id="themeToggle" aria-label="Basculer le mode sombre">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Utilitaire pour obtenir le préfixe de la classe
+        function getClassPrefix() {
+            return 'sec3_'; // Pour secondaire3.html
+        }
+
+        // Utilitaire pour obtenir le nom de la classe
+        function getClassName() {
+            return 'Secondaire 3';
+        }
+
+        let groups = [];
+
+        function saveGroup() {
+            if (groups.length >= 6) {
+                showNotification('Impossible d\'ajouter plus de 5 projets!', 'danger');
+                return;
+            }
+
+            const form = document.getElementById('groupForm');
+            const formData = new FormData(form);
+
+            const newGroupId = groups.length + 1;
+            const newProjectId = 1;
+
+            // Créer le nouveau groupe pour l'affichage admin
+            const newGroup = {
+                id: Date.now(),
+                name: formData.get('groupName'),
+                members: parseInt(formData.get('members')),
+                projectTitle: formData.get('projectTitle'),
+                projectDescription: formData.get('projectDescription'),
+                status: formData.get('status'),
+                availableProjects: [
+                    {
+                        title: formData.get('projectTitle'),
+                        description: formData.get('projectDescription')
+                    }
+                ]
+            };
+
+            // Ajouter le groupe à la liste des groupes
+            groups.push(newGroup);
+
+            // Synchroniser avec le système de vote
+            const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
+            const projectKey = `${getClassPrefix()}g${newGroupId}p${newProjectId}`;
+
+            // Ajouter le nouveau projet au format du système de vote
+            projectsData[projectKey] = {
+                title: formData.get('projectTitle'),
+                description: formData.get('projectDescription'),
+                votes: 0,
+                totalRating: 0,
+                group: `Groupe ${newGroupId}`,
+                class: getClassName()
+            };
+
+            // Sauvegarder dans localStorage
+            localStorage.setItem('projectVotes', JSON.stringify(projectsData));
+
+            // Mettre à jour l'affichage
+            displayGroups();
+            updateAddButton();
+
+            // Fermer le modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addGroupModal'));
+            modal.hide();
+
+            // Réinitialiser le formulaire
+            form.reset();
+
+            showNotification('Groupe ajouté avec succès!', 'success');
+        }
+
+        function editGroup(id) {
+            const group = groups.find(g => g.id === id);
+            if (!group) return;
+
+            const form = document.getElementById('groupForm');
+            form.groupName.value = group.name;
+            form.members.value = group.members;
+            if (group.availableProjects && group.availableProjects.length > 0) {
+                form.projectTitle.value = group.availableProjects[0].title;
+                form.projectDescription.value = group.availableProjects[0].description;
+            }
+            form.status.value = group.status;
+
+            // Stocker l'ID du groupe en cours d'édition
+            form.dataset.editingId = id;
+
+            const modal = new bootstrap.Modal(document.getElementById('addGroupModal'));
+            modal.show();
+
+            document.querySelector('#addGroupModal .modal-title').innerHTML = `
+                <i class="fas fa-edit me-2"></i>
+                Modifier le groupe
+            `;
+
+            const saveButton = document.querySelector('#addGroupModal .btn-primary');
+            saveButton.onclick = () => updateGroup(id);
+        }
+
+        function updateGroup(id) {
+            const group = groups.find(g => g.id === id);
+            if (!group) return;
+
+            const form = document.getElementById('groupForm');
+            const formData = new FormData(form);
+
+            // Mettre à jour le groupe dans la liste
+            group.name = formData.get('groupName');
+            group.members = parseInt(formData.get('members'));
+            group.status = formData.get('status');
+            group.availableProjects = [{
+                title: formData.get('projectTitle'),
+                description: formData.get('projectDescription')
+            }];
+
+            // Synchroniser avec le système de vote
+            const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
+            const groupIndex = groups.indexOf(group) + 1;
+            const projectKey = `${getClassPrefix()}g${groupIndex}p1`;
+
+            if (projectsData[projectKey]) {
+                projectsData[projectKey].title = formData.get('projectTitle');
+                projectsData[projectKey].description = formData.get('projectDescription');
+                localStorage.setItem('projectVotes', JSON.stringify(projectsData));
+            }
+
+            displayGroups();
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addGroupModal'));
+            modal.hide();
+
+            form.reset();
+            delete form.dataset.editingId;
+
+            showNotification('Groupe modifié avec succès!', 'success');
+        }
+
+        function deleteGroup(id) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce groupe ?')) {
+                const groupIndex = groups.findIndex(g => g.id === id);
+                if (groupIndex !== -1) {
+                    // Supprimer le groupe de la liste
+                    groups.splice(groupIndex, 1);
+
+                    // Synchroniser avec le système de vote
+                    const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
+                    const projectKey = `${getClassPrefix()}g${groupIndex + 1}p1`;
+                    
+                    if (projectsData[projectKey]) {
+                        delete projectsData[projectKey];
+                        localStorage.setItem('projectVotes', JSON.stringify(projectsData));
+                    }
+
+                    displayGroups();
+                    updateAddButton();
+                    showNotification('Groupe supprimé avec succès!', 'success');
+                }
+            }
+        }
+
+        function displayGroups() {
+            const groupsList = document.getElementById('groupsList');
+            groupsList.innerHTML = '';
+
+            groups.forEach(group => {
+                const col = document.createElement('div');
+                col.className = 'col-md-6 mb-4';
+                
+                let projectsHtml = '';
+                group.availableProjects.forEach((project, index) => {
+                    projectsHtml += `
+                        <div class="project-option mb-3 p-3 border rounded ${group.selectedProject === index ? 'bg-light' : ''}"
+                             onclick="selectProject(${group.id}, ${index})">
+                            <h6 class="project-title">
+                                <i class="fas fa-project-diagram me-2"></i>
+                                ${project.title}
+                                ${group.selectedProject === index ? '<span class="badge bg-success ms-2">Sélectionné</span>' : ''}
+                            </h6>
+                            <p class="project-description mb-0 small">
+                                ${project.description}
+                            </p>
+                        </div>
+                    `;
+                });
+
+                col.innerHTML = `
+                    <div class="group-card">
+                        <div class="group-header">
+                            <div>
+                                <h5 class="group-title">${group.name}</h5>
+                                <span class="badge bg-${group.status === 'actif' ? 'success' : 'secondary'}">
+                                    ${group.status}
+                                </span>
+                            </div>
+                            <div class="group-members">
+                                <i class="fas fa-user me-2"></i>
+                                ${group.members} membres
+                            </div>
+                        </div>
+                        <div class="projects-container">
+                            ${projectsHtml}
+                        </div>
+                        <div class="action-buttons mt-3">
+                            <button class="btn btn-sm btn-outline-primary" onclick="editGroup(${group.id})">
+                                <i class="fas fa-edit"></i>
+                                Modifier
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteGroup(${group.id})">
+                                <i class="fas fa-trash"></i>
+                                Supprimer
+                            </button>
+                        </div>
+                    </div>
+                `;
+                groupsList.appendChild(col);
+            });
+        }
+
+        function updateAddButton() {
+            const addButton = document.getElementById('addGroupBtn');
+            if (groups.length >= 5) {
+                addButton.disabled = true;
+                addButton.title = 'Maximum de 5 projets atteint';
+            } else {
+                addButton.disabled = false;
+                addButton.title = '';
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 1050;';
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            displayGroups();
+            updateAddButton();
+        });
+
+        // Gestion du mode sombre
+        const themeToggle = document.getElementById('themeToggle');
+        const icon = themeToggle.querySelector('i');
+        
+        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+        
+        const savedTheme = localStorage.getItem('theme') || (prefersDarkScheme.matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        icon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        });
+
+        prefersDarkScheme.addEventListener('change', (e) => {
+            if (!localStorage.getItem('theme')) {
+                const newTheme = e.matches ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            }
+        });
+    </script>
+</body>
+</html>

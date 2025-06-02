@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vote des Projets - Secondaire 2</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a7bff;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #ffffff;
+            --text-secondary: #cbd5e1;
+            --border-color: #334155;
+            --glass-bg: rgba(30, 41, 59, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .header {
+            background: var(--bg-card);
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .group-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .group-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .group-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .project-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .project-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .project-description {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .rating-container {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .rating-star {
+            font-size: 1.5rem;
+            color: #ffd700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .rating-star:hover {
+            transform: scale(1.2);
+        }
+
+        .rating-star.disabled {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .votes-count {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+
+        .back-button {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+        }
+
+        .vote-closed-message {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1>Vote des Projets - Secondaire 2</h1>
+                <a href="utilisateur.html" class="back-button">
+                    <i class="fas fa-arrow-left"></i>
+                    Retour
+                    </a>
+                </div>
+            <p class="text-secondary">Votez pour vos projets préférés</p>
+            <div class="votes-remaining">
+                <i class="fas fa-star text-warning"></i>
+                Votes restants : <span id="votesCount">3</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container vote-container">
+        <!-- Groupe 1 -->
+        <div class="group-card">
+            <div class="group-header">
+                <h2 class="group-title">Groupe 1</h2>
+                <p class="text-secondary">4 membres</p>
+            </div>
+            <div class="projects-grid" id="group1-projects">
+                <!-- Les projets seront ajoutés ici dynamiquement -->
+            </div>
+        </div>
+
+        <!-- Groupe 2 -->
+        <div class="group-card">
+            <div class="group-header">
+                <h2 class="group-title">Groupe 2</h2>
+                <p class="text-secondary">4 membres</p>
+            </div>
+            <div class="projects-grid" id="group2-projects">
+                <!-- Les projets seront ajoutés ici dynamiquement -->
+            </div>
+        </div>
+
+        <!-- Groupe 3 -->
+        <div class="group-card">
+            <div class="group-header">
+                <h2 class="group-title">Groupe 3</h2>
+                <p class="text-secondary">4 membres</p>
+            </div>
+            <div class="projects-grid" id="group3-projects">
+                <!-- Les projets seront ajoutés ici dynamiquement -->
+            </div>
+        </div>
+        </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="projects-data.js"></script>
+    <script src="vote-handler.js"></script>
+    <script src="vote-status-checker.js"></script>
+    <script>
+        // Charger les projets depuis projects-data.js
+        function loadProjects() {
+            const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
+            const groups = {};
+
+            // Parcourir tous les projets et filtrer ceux de Secondaire 2
+            Object.entries(projectsData).forEach(([key, project]) => {
+                if (key.startsWith('sec2_')) {
+                    const [_, groupId, projectId] = key.match(/g(\d+)p(\d+)$/);
+                    const groupKey = `group${groupId}`;
+                    
+                    if (!groups[groupKey]) {
+                        groups[groupKey] = [];
+                    }
+
+                    groups[groupKey].push({
+                        id: `g${groupId}p${projectId}`,
+                        title: project.title,
+                        description: project.description,
+                        rating: project.votes > 0 ? project.totalRating / project.votes : 0,
+                        votes: project.votes
+                    });
+                }
+            });
+
+            // Mettre à jour l'affichage pour chaque groupe
+            Object.keys(groups).forEach(groupKey => {
+                const container = document.getElementById(`${groupKey}-projects`);
+                if (container) {
+                    container.innerHTML = groups[groupKey].map(project => `
+                        <div class="project-card project-option" data-group="${project.id.match(/g(\d+)/)[1]}" data-project="${project.id.match(/p(\d+)/)[1]}">
+                            <h3 class="project-title">${project.title}</h3>
+                            <p class="project-description">${project.description}</p>
+                            <div class="rating">
+                                ${generateStarRating(project.id)}
+                            </div>
+                            <div class="vote-stats">
+                                <span class="vote-average">Note moyenne: <span>${project.rating.toFixed(1)}</span></span>
+                                <span class="vote-count">(<span>${project.votes}</span> votes)</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            });
+        }
+
+        function generateStarRating(projectId) {
+            let html = '<div class="rating-container">';
+            for (let i = 1; i <= 5; i++) {
+                html += `
+                    <input type="radio" id="${projectId}_star${i}" name="${projectId}_rating" value="${i}" class="d-none">
+                    <label for="${projectId}_star${i}" class="rating-star">
+                        <i class="far fa-star"></i>
+                    </label>
+                `;
+            }
+            html += '</div>';
+            return html;
+        }
+
+        // Charger les projets au chargement de la page
+        document.addEventListener('DOMContentLoaded', loadProjects);
+
+        // Recharger les projets quand un vote est enregistré
+        window.addEventListener('projectVoted', loadProjects);
+    </script>
+</body>
+</html> 

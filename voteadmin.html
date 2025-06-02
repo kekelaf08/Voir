@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration du système de vote</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a7bff;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #ffffff;
+            --text-secondary: #cbd5e1;
+            --border-color: #334155;
+            --glass-bg: rgba(30, 41, 59, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        .wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 1.5rem;
+        }
+
+        .header {
+            background: var(--bg-card);
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .title {
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+        }
+
+        .dashboard {
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .class-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            color: var(--text-primary);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .class-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(74, 123, 255, 0.1), rgba(74, 123, 255, 0));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .class-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(74, 123, 255, 0.2);
+        }
+
+        .class-card:hover::before {
+            opacity: 1;
+        }
+
+        .class-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-color), #6d92ff);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1.5rem;
+            font-size: 1.75rem;
+            color: white;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .class-icon::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(45deg);
+            transition: all 0.6s ease;
+        }
+
+        .class-card:hover .class-icon::after {
+            transform: rotate(45deg) translate(50%, 50%);
+        }
+
+        .class-content {
+            flex: 1;
+        }
+
+        .class-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            letter-spacing: 0.5px;
+        }
+
+        .class-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .class-stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .class-stat {
+            display: flex;
+            align-items: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .class-stat i {
+            margin-right: 0.5rem;
+            font-size: 1rem;
+            color: var(--primary-color);
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-title {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+        }
+
+        .nav-link {
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background: var(--glass-bg);
+            color: var(--primary-color);
+        }
+
+        .nav-link.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .nav-link i {
+            margin-right: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-stats {
+            background: var(--glass-bg);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 2rem;
+        }
+
+        .sidebar-stat-item {
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .sidebar-stat-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .sidebar-stat-label {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-stat-value {
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="nav-section">
+                <h3 class="nav-title">Navigation</h3>
+                <a href="#" class="nav-link active">
+                    <i class="fas fa-home"></i>
+                    Dashboard
+                </a>
+                <a href="paramètrevote.html" class="nav-link">
+                    <i class="fas fa-cog"></i>
+                    Paramètres
+                </a>
+                <a href="statistiquevote.html" class="nav-link">
+                    <i class="fas fa-chart-bar"></i>
+                    Statistiques
+                </a>
+                <a href="connexion.html" class="nav-link text-danger" onclick="deconnexion()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Déconnexion
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <h3 class="nav-title">Classes</h3>
+                <a href="7eme_vote.html" class="nav-link">
+                    <i class="fas fa-school"></i>
+                    7ème année
+                </a>
+                <a href="8eme_vote.html" class="nav-link">
+                    <i class="fas fa-graduation-cap"></i>
+                    8ème année
+                </a>
+                <a href="9eme_vote.html" class="nav-link">
+                    <i class="fas fa-laptop-code"></i>
+                    9ème année
+                </a>
+                <a href="s1_vote.html" class="nav-link">
+                    <i class="fas fa-microscope"></i>
+                    Secondaire 1
+                </a>
+                <a href="s2_vote.html" class="nav-link">
+                    <i class="fas fa-robot"></i>
+                    Secondaire 2
+                </a>
+                <a href="s3_vote.html" class="nav-link">
+                    <i class="fas fa-globe-americas"></i>
+                    Secondaire 3
+                </a>
+            </div>
+
+            <div class="sidebar-stats">
+                <div class="sidebar-stat-item">
+                    <div class="sidebar-stat-label">Votes aujourd'hui</div>
+                    <div class="sidebar-stat-value">45</div>
+                </div>
+                <div class="sidebar-stat-item">
+                    <div class="sidebar-stat-label">Moyenne globale</div>
+                    <div class="sidebar-stat-value">4.2/5</div>
+                </div>
+                <div class="sidebar-stat-item">
+                    <div class="sidebar-stat-label">Temps restant</div>
+                    <div class="sidebar-stat-value">2 jours</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <div class="container">
+                    <h1 class="title">Administration du système de vote</h1>
+                    <p class="subtitle">Gérez les votes et les projets</p>
+                </div>
+            </header>
+
+            <div class="container">
+                <!-- Dashboard -->
+                <div class="dashboard">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="stat-value">30</div>
+                                <div class="stat-label">Groupes Actifs</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-vote-yea"></i>
+                                </div>
+                                <div class="stat-value">150</div>
+                                <div class="stat-label">Votes Totaux</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="stat-value">4.2</div>
+                                <div class="stat-label">Note Moyenne</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="stat-value">2</div>
+                                <div class="stat-label">Jours Restants</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Classes -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <a href="7eme.html" class="class-card">
+                            <div class="class-icon">
+                                <i class="fas fa-school"></i>
+                            </div>
+                            <div class="class-content">
+                                <h3 class="class-title">7ème année</h3>
+                                <p class="class-description">Gérer les projets et suivre les votes des élèves de 7ème année</p>
+                                <div class="class-stats">
+                                    <div class="class-stat">
+                                        <i class="fas fa-users"></i>
+                                        5 groupes
+                                    </div>
+                                    <div class="class-stat">
+                                        <i class="fas fa-star"></i>
+                                        4.5/5
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="8eme.html" class="class-card">
+                            <div class="class-icon">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <div class="class-content">
+                                <h3 class="class-title">8ème année</h3>
+                                <p class="class-description">Gérer les projets et suivre les votes des élèves de 8ème année</p>
+                                <div class="class-stats">
+                                    <div class="class-stat">
+                                        <i class="fas fa-users"></i>
+                                        5 groupes
+                                    </div>
+                                    <div class="class-stat">
+                                        <i class="fas fa-star"></i>
+                                        4.3/5
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="9eme.html" class="class-card">
+                            <div class="class-icon">
+                                <i class="fas fa-laptop-code"></i>
+                            </div>
+                            <div class="class-content">
+                                <h3 class="class-title">9ème année</h3>
+                                <p class="class-description">Gérer les projets et suivre les votes des élèves de 9ème année</p>
+                                <div class="class-stats">
+                                    <div class="class-stat">
+                                        <i class="fas fa-users"></i>
+                                        5 groupes
+                                    </div>
+                                    <div class="class-stat">
+                                        <i class="fas fa-star"></i>
+                                        4.4/5
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="secondaire1.html" class="class-card">
+                            <div class="class-icon">
+                                <i class="fas fa-microscope"></i>
+                            </div>
+                            <div class="class-content">
+                                <h3 class="class-title">Secondaire 1</h3>
+                                <p class="class-description">Gérer les projets et suivre les votes des élèves de Secondaire 1</p>
+                                <div class="class-stats">
+                                    <div class="class-stat">
+                                        <i class="fas fa-users"></i>
+                                        5 groupes
+                                    </div>
+                                    <div class="class-stat">
+                                        <i class="fas fa-star"></i>
+                                        4.6/5
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="secondaire2.html" class="class-card">
+                            <div class="class-icon">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="class-content">
+                                <h3 class="class-title">Secondaire 2</h3>
+                                <p class="class-description">Gérer les projets et suivre les votes des élèves de Secondaire 2</p>
+                                <div class="class-stats">
+                                    <div class="class-stat">
+                                        <i class="fas fa-users"></i>
+                                        5 groupes
+                                    </div>
+                                    <div class="class-stat">
+                                        <i class="fas fa-star"></i>
+                                        4.2/5
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="secondaire3.html" class="class-card">
+                            <div class="class-icon">
+                                <i class="fas fa-globe-americas"></i>
+                            </div>
+                            <div class="class-content">
+                                <h3 class="class-title">Secondaire 3</h3>
+                                <p class="class-description">Gérer les projets et suivre les votes des élèves de Secondaire 3</p>
+                                <div class="class-stats">
+                                    <div class="class-stat">
+                                        <i class="fas fa-users"></i>
+                                        5 groupes
+                                    </div>
+                                    <div class="class-stat">
+                                        <i class="fas fa-star"></i>
+                                        4.5/5
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function deconnexion() {
+            // Supprimer les données de session si nécessaire
+            localStorage.removeItem('user');
+            sessionStorage.clear();
+            
+            // Rediriger vers la page de connexion
+            window.location.href = 'connexion.html';
+        }
+    </script>
+</body>
+</html>

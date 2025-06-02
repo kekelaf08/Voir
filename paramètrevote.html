@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paramètres des votes</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Animation CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Palette de couleurs sombre */
+            --primary-color: #4a7bff;
+            --primary-light: #6691ff;
+            --primary-dark: #3366ff;
+            --secondary-color: #64748b;
+            --success-color: #22c55e;
+            --info-color: #0ea5e9;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            
+            /* Couleurs de fond et de texte */
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-hover: #2d3748;
+            --text-primary: #ffffff;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            
+            /* Effets visuels */
+            --glass-bg: rgba(30, 41, 59, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --gradient-primary: linear-gradient(135deg, #4a7bff, #3366ff);
+            --gradient-success: linear-gradient(135deg, #22c55e, #16a34a);
+            --gradient-dark: linear-gradient(135deg, #1e293b, #0f172a);
+            
+            /* Typographie */
+            --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            --font-size-base: 0.95rem;
+            --font-size-lg: 1.125rem;
+            --font-size-sm: 0.875rem;
+            --line-height-base: 1.6;
+            
+            /* Ombres */
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+            
+            /* Transitions */
+            --transition-base: all 0.3s ease;
+            --transition-fast: all 0.15s ease;
+            
+            /* Nouvelles variables pour la typographie */
+            --heading-color: #1a237e;
+            --text-primary: #ffffff;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --line-height-heading: 1.3;
+            --letter-spacing-heading: -0.02em;
+            --heading-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            --text-glow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            font-family: var(--font-family-base);
+            font-size: var(--font-size-base);
+            line-height: var(--line-height-base);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .navbar {
+            background: var(--gradient-dark);
+            box-shadow: var(--glass-shadow);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            color: var(--text-primary) !important;
+            font-weight: 700;
+            font-size: 1.25rem;
+            text-shadow: var(--heading-shadow);
+        }
+
+        .btn-light {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            transition: var(--transition-base);
+        }
+
+        .btn-light:hover {
+            background: var(--bg-hover);
+            transform: translateY(-2px);
+        }
+
+        .main-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            box-shadow: var(--glass-shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .status-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            transition: var(--transition-base);
+        }
+
+        .status-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .status-active {
+            background-color: var(--success-color);
+        }
+
+        .status-inactive {
+            background-color: var(--danger-color);
+        }
+
+        .action-button {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            width: 100%;
+            margin-bottom: 1rem;
+            transition: var(--transition-base);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(5px);
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .btn-start {
+            background: var(--gradient-success);
+            border: none;
+            color: white;
+        }
+
+        .btn-end {
+            background: linear-gradient(135deg, var(--danger-color), #dc3545);
+            border: none;
+            color: white;
+        }
+
+        .stats-container {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .stats-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition-base);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .stats-number {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: var(--heading-shadow);
+        }
+
+        .stats-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: var(--text-glow);
+        }
+
+        .confirmation-modal .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+        }
+
+        .confirmation-modal .modal-header {
+            background: var(--gradient-primary);
+            color: var(--text-primary);
+            border-radius: 12px 12px 0 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .confirmation-modal .modal-body {
+            color: var(--text-secondary);
+        }
+
+        .confirmation-modal .modal-footer {
+            border-top: 1px solid var(--glass-border);
+            padding: 1.5rem;
+        }
+
+        .btn-close-white {
+            filter: brightness(0) invert(1);
+        }
+
+        /* Animations */
+        @keyframes glow {
+            0% {
+                box-shadow: 0 0 5px rgba(74, 123, 255, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(74, 123, 255, 0.4);
+            }
+            100% {
+                box-shadow: 0 0 5px rgba(74, 123, 255, 0.2);
+            }
+        }
+
+        .stats-card:hover {
+            animation: glow 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark">
+        <div class="container">
+            <span class="navbar-brand">
+                <i class="fas fa-cog me-2"></i>
+                Paramètres des votes
+            </span>
+            <a href="voteadmin.html" class="btn btn-light btn-sm">
+                <i class="fas fa-arrow-left me-2"></i>
+                Retour à l'administration
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="main-container">
+            <!-- État actuel des votes -->
+            <div class="status-card">
+                <h3 class="mb-3">État actuel des votes</h3>
+                <p class="mb-2">
+                    <span class="status-indicator status-inactive" id="statusIndicator"></span>
+                    <span id="statusText">Les votes sont actuellement fermés</span>
+                </p>
+                <p class="text-muted mb-0" id="lastActionText">Dernière action : Aucune action enregistrée</p>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="row">
+                <div class="col-md-6">
+                    <button class="action-button btn-start" id="startVoteBtn" onclick="confirmStartVote()">
+                        <i class="fas fa-play-circle me-2"></i>
+                        Commencer les votes
+                    </button>
+                </div>
+                <div class="col-md-6">
+                    <button class="action-button btn-end" id="endVoteBtn" onclick="confirmEndVote()" disabled>
+                        <i class="fas fa-stop-circle me-2"></i>
+                        Clôturer les votes
+                    </button>
+                </div>
+            </div>
+
+            <!-- Statistiques -->
+            <div class="stats-container">
+                <h3 class="mb-3">Statistiques des votes</h3>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <div class="stats-number" id="totalVotes">0</div>
+                            <div class="stats-label">Votes totaux</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <div class="stats-number" id="activeVoters">0</div>
+                            <div class="stats-label">Votants actifs</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <div class="stats-number" id="avgVotesPerClass">0</div>
+                            <div class="stats-label">Moyenne par classe</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmation pour commencer les votes -->
+    <div class="modal fade confirmation-modal" id="startVoteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Commencer les votes</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Êtes-vous sûr de vouloir commencer la session de vote ?</p>
+                    <p>Cette action permettra aux visiteurs de commencer à voter pour les projets.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-success" onclick="startVote()">
+                        <i class="fas fa-play-circle me-2"></i>
+                        Commencer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmation pour clôturer les votes -->
+    <div class="modal fade confirmation-modal" id="endVoteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Clôturer les votes</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Êtes-vous sûr de vouloir clôturer la session de vote ?</p>
+                    <p>Cette action empêchera tout nouveau vote. Cette action est irréversible.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-danger" onclick="endVote()">
+                        <i class="fas fa-stop-circle me-2"></i>
+                        Clôturer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // État initial
+        let voteStatus = {
+            isActive: false,
+            startTime: null,
+            endTime: null,
+            totalVotes: 0,
+            activeVoters: 0,
+            lastUpdate: null
+        };
+
+        // Fonction pour mettre à jour l'interface
+        function updateUI() {
+            const statusIndicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            const startVoteBtn = document.getElementById('startVoteBtn');
+            const endVoteBtn = document.getElementById('endVoteBtn');
+            const lastActionText = document.getElementById('lastActionText');
+
+            // Mise à jour des indicateurs
+            statusIndicator.className = `status-indicator status-${voteStatus.isActive ? 'active' : 'inactive'}`;
+            statusText.textContent = voteStatus.isActive ? 'Les votes sont actuellement ouverts' : 'Les votes sont actuellement fermés';
+
+            // Mise à jour des boutons
+            startVoteBtn.disabled = voteStatus.isActive;
+            endVoteBtn.disabled = !voteStatus.isActive;
+
+            // Mise à jour du dernier événement
+            if (voteStatus.startTime) {
+                const startDate = new Date(voteStatus.startTime);
+                lastActionText.textContent = `Dernière action : Votes commencés le ${startDate.toLocaleString()}`;
+            }
+            if (voteStatus.endTime) {
+                const endDate = new Date(voteStatus.endTime);
+                lastActionText.textContent = `Dernière action : Votes clôturés le ${endDate.toLocaleString()}`;
+            }
+
+            // Mise à jour des statistiques
+            document.getElementById('totalVotes').textContent = voteStatus.totalVotes;
+            document.getElementById('activeVoters').textContent = voteStatus.activeVoters;
+            document.getElementById('avgVotesPerClass').textContent = 
+                (voteStatus.totalVotes / 6).toFixed(1); // 6 classes au total
+        }
+
+        // Fonction pour afficher le modal de confirmation de début de vote
+        function confirmStartVote() {
+            const modal = new bootstrap.Modal(document.getElementById('startVoteModal'));
+            modal.show();
+        }
+
+        // Fonction pour afficher le modal de confirmation de fin de vote
+        function confirmEndVote() {
+            const modal = new bootstrap.Modal(document.getElementById('endVoteModal'));
+            modal.show();
+        }
+
+        // Fonction pour commencer les votes
+        function startVote() {
+            voteStatus.isActive = true;
+            voteStatus.startTime = new Date();
+            voteStatus.endTime = null;
+            voteStatus.lastUpdate = new Date().getTime();
+            
+            // Simuler quelques statistiques initiales
+            voteStatus.totalVotes = 0;
+            voteStatus.activeVoters = 0;
+
+            // Fermer le modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('startVoteModal'));
+            modal.hide();
+
+            // Mettre à jour l'interface
+            updateUI();
+
+            // Afficher une notification
+            showNotification('Les votes ont été ouverts avec succès!', 'success');
+
+            // Sauvegarder l'état dans le localStorage et émettre l'événement
+            saveVoteStatus();
+            
+            // Émettre un événement personnalisé pour notifier les autres pages
+            window.dispatchEvent(new CustomEvent('voteStatusChanged', {
+                detail: {
+                    action: 'start',
+                    timestamp: new Date().getTime()
+                }
+            }));
+        }
+
+        // Fonction pour clôturer les votes
+        function endVote() {
+            voteStatus.isActive = false;
+            voteStatus.endTime = new Date();
+            voteStatus.lastUpdate = new Date().getTime();
+
+            // Fermer le modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('endVoteModal'));
+            modal.hide();
+
+            // Mettre à jour l'interface
+            updateUI();
+
+            // Afficher une notification
+            showNotification('Les votes ont été clôturés avec succès!', 'danger');
+
+            // Sauvegarder l'état dans le localStorage
+            saveVoteStatus();
+            
+            // Émettre un événement personnalisé pour notifier les autres pages
+            window.dispatchEvent(new CustomEvent('voteStatusChanged', {
+                detail: {
+                    action: 'end',
+                    timestamp: new Date().getTime()
+                }
+            }));
+        }
+
+        // Fonction pour sauvegarder l'état dans le localStorage
+        function saveVoteStatus() {
+            localStorage.setItem('voteStatus', JSON.stringify(voteStatus));
+            localStorage.setItem('voteStatusLastUpdate', new Date().getTime().toString());
+        }
+
+        // Fonction pour charger l'état depuis le localStorage
+        function loadVoteStatus() {
+            const savedStatus = localStorage.getItem('voteStatus');
+            if (savedStatus) {
+                voteStatus = JSON.parse(savedStatus);
+                updateUI();
+            }
+        }
+
+        // Fonction pour vérifier périodiquement les changements d'état
+        function checkVoteStatusChanges() {
+            const lastUpdate = localStorage.getItem('voteStatusLastUpdate');
+            if (lastUpdate && (!voteStatus.lastUpdate || parseInt(lastUpdate) > voteStatus.lastUpdate)) {
+                loadVoteStatus();
+                voteStatus.lastUpdate = parseInt(lastUpdate);
+            }
+        }
+
+        // Fonction pour afficher une notification
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 1050;';
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            loadVoteStatus();
+            // Vérifier les changements toutes les 2 secondes
+            setInterval(checkVoteStatusChanges, 2000);
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
