@@ -9,15 +9,20 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #4a7bff;
-            --bg-dark: #0f172a;
-            --bg-card: #1e293b;
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --success-color: #4cc9f0;
+            --warning-color: #f72585;
+            --bg-dark: #0a1128;
+            --bg-card: #1a2238;
             --text-primary: #ffffff;
-            --text-secondary: #cbd5e1;
-            --border-color: #334155;
-            --glass-bg: rgba(30, 41, 59, 0.8);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-secondary: #b8c2cc;
+            --border-color: #2d3748;
+            --glass-bg: rgba(26, 34, 56, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.08);
             --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --card-gradient: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(76, 201, 240, 0.1));
         }
 
         body {
@@ -25,62 +30,99 @@
             color: var(--text-primary);
             font-family: 'Inter', sans-serif;
             min-height: 100vh;
+            line-height: 1.6;
         }
 
         .wrapper {
             display: flex;
             min-height: 100vh;
+            background: radial-gradient(circle at top right, rgba(67, 97, 238, 0.1) 0%, transparent 60%),
+                        radial-gradient(circle at bottom left, rgba(76, 201, 240, 0.1) 0%, transparent 60%);
         }
 
         .sidebar {
             width: 280px;
-            background: var(--bg-card);
-            border-right: 1px solid var(--border-color);
-            padding: 1.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid var(--glass-border);
+            padding: 2rem 1.5rem;
             position: fixed;
             height: 100vh;
             overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 1000;
         }
 
         .main-content {
             flex: 1;
             margin-left: 280px;
-            padding: 1.5rem;
+            padding: 2rem;
+            position: relative;
         }
 
         .header {
-            background: var(--bg-card);
-            padding: 2rem 0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
             margin-bottom: 2rem;
-            border-bottom: 1px solid var(--border-color);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
         }
 
         .title {
+            font-size: 2rem;
+            font-weight: 700;
             color: var(--text-primary);
             margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
         }
 
         .subtitle {
             color: var(--text-secondary);
-        }
-
-        .dashboard {
-            margin-bottom: 3rem;
+            font-size: 1.1rem;
         }
 
         .stat-card {
             background: var(--glass-bg);
+            backdrop-filter: blur(10px);
             border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 1.5rem;
+            border-radius: 16px;
+            padding: 2rem;
             text-align: center;
-            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--card-gradient);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
         }
 
         .stat-icon {
-            font-size: 2rem;
-            color: var(--primary-color);
-            margin-bottom: 1rem;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+            position: relative;
         }
 
         .stat-value {
@@ -88,6 +130,7 @@
             font-weight: 700;
             color: var(--text-primary);
             margin-bottom: 0.5rem;
+            position: relative;
         }
 
         .stat-label {
@@ -95,14 +138,16 @@
             font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 1px;
+            position: relative;
         }
 
         .class-card {
             background: var(--glass-bg);
+            backdrop-filter: blur(10px);
             border: 1px solid var(--glass-border);
             border-radius: 16px;
             padding: 2rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             text-decoration: none;
@@ -111,7 +156,7 @@
             position: relative;
             overflow: hidden;
             color: var(--text-primary);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--glass-shadow);
         }
 
         .class-card::before {
@@ -119,77 +164,60 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, rgba(74, 123, 255, 0.1), rgba(74, 123, 255, 0));
+            right: 0;
+            bottom: 0;
+            background: var(--card-gradient);
             opacity: 0;
-            transition: opacity 0.4s ease;
-        }
-
-        .class-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 8px 20px rgba(74, 123, 255, 0.2);
+            transition: opacity 0.3s ease;
         }
 
         .class-card:hover::before {
             opacity: 1;
         }
 
+        .class-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(67, 97, 238, 0.15);
+        }
+
         .class-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, var(--primary-color), #6d92ff);
-            border-radius: 16px;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 1.5rem;
-            font-size: 1.75rem;
+            margin-right: 2rem;
+            font-size: 2rem;
             color: white;
             flex-shrink: 0;
             position: relative;
-            overflow: hidden;
             transition: all 0.3s ease;
-        }
-
-        .class-icon::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: rgba(255, 255, 255, 0.1);
-            transform: rotate(45deg);
-            transition: all 0.6s ease;
-        }
-
-        .class-card:hover .class-icon::after {
-            transform: rotate(45deg) translate(50%, 50%);
         }
 
         .class-content {
             flex: 1;
+            position: relative;
         }
 
         .class-title {
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
             color: var(--text-primary);
-            letter-spacing: 0.5px;
         }
 
         .class-description {
             color: var(--text-secondary);
-            font-size: 0.95rem;
-            margin-bottom: 0.75rem;
-            line-height: 1.5;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            line-height: 1.6;
         }
 
         .class-stats {
             display: flex;
-            gap: 1.5rem;
+            gap: 2rem;
             margin-top: 1rem;
             padding-top: 1rem;
             border-top: 1px solid var(--glass-border);
@@ -199,25 +227,26 @@
             display: flex;
             align-items: center;
             color: var(--text-secondary);
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
         .class-stat i {
-            margin-right: 0.5rem;
-            font-size: 1rem;
-            color: var(--primary-color);
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            color: var(--accent-color);
         }
 
         .nav-section {
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
         }
 
         .nav-title {
             color: var(--text-secondary);
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 1rem;
+            letter-spacing: 1.5px;
+            margin-bottom: 1.25rem;
+            font-weight: 600;
         }
 
         .nav-link {
@@ -225,14 +254,15 @@
             text-decoration: none;
             display: flex;
             align-items: center;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
+            padding: 0.875rem 1.25rem;
+            border-radius: 12px;
             margin-bottom: 0.5rem;
             transition: all 0.3s ease;
+            font-weight: 500;
         }
 
         .nav-link:hover {
-            background: var(--glass-bg);
+            background: rgba(67, 97, 238, 0.1);
             color: var(--primary-color);
         }
 
@@ -245,18 +275,19 @@
             margin-right: 1rem;
             width: 20px;
             text-align: center;
+            font-size: 1.1rem;
         }
 
         .sidebar-stats {
-            background: var(--glass-bg);
-            border-radius: 12px;
-            padding: 1rem;
+            background: rgba(67, 97, 238, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
             margin-top: 2rem;
         }
 
         .sidebar-stat-item {
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1.25rem;
             border-bottom: 1px solid var(--glass-border);
         }
 
@@ -268,18 +299,57 @@
 
         .sidebar-stat-label {
             color: var(--text-secondary);
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             margin-bottom: 0.5rem;
+            font-weight: 500;
         }
 
         .sidebar-stat-value {
             color: var(--text-primary);
-            font-size: 1.25rem;
+            font-size: 1.5rem;
             font-weight: 600;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+        }
+
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1001;
+            background: var(--primary-color);
+            border: none;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 992px) {
+            .mobile-toggle {
+                display: block;
+            }
         }
     </style>
 </head>
 <body>
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
     <div class="wrapper">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -350,57 +420,56 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="header">
-                <div class="container">
+                <div class="container-fluid">
                     <h1 class="title">Administration du système de vote</h1>
-                    <p class="subtitle">Gérez les votes et les projets</p>
+                    <p class="subtitle">Gérez les votes et suivez les statistiques en temps réel</p>
                 </div>
             </header>
 
-            <div class="container">
+            <div class="container-fluid">
                 <!-- Dashboard -->
-                <div class="dashboard">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="stat-card">
-                                <div class="stat-icon">
-                                    <i class="fas fa-users"></i>
-                                </div>
-                                <div class="stat-value">30</div>
-                                <div class="stat-label">Groupes Actifs</div>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
                             </div>
+                            <div class="stat-value">30</div>
+                            <div class="stat-label">Groupes Actifs</div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="stat-card">
-                                <div class="stat-icon">
-                                    <i class="fas fa-vote-yea"></i>
-                                </div>
-                                <div class="stat-value">150</div>
-                                <div class="stat-label">Votes Totaux</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-vote-yea"></i>
                             </div>
+                            <div class="stat-value">150</div>
+                            <div class="stat-label">Votes Totaux</div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="stat-card">
-                                <div class="stat-icon">
-                                    <i class="fas fa-star"></i>
-                                </div>
-                                <div class="stat-value">4.2</div>
-                                <div class="stat-label">Note Moyenne</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-star"></i>
                             </div>
+                            <div class="stat-value">4.2</div>
+                            <div class="stat-label">Note Moyenne</div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="stat-card">
-                                <div class="stat-icon">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                                <div class="stat-value">2</div>
-                                <div class="stat-label">Jours Restants</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
                             </div>
+                            <div class="stat-value">2</div>
+                            <div class="stat-label">Jours Restants</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Classes -->
-                <div class="row">
+                <div class="row g-4">
+                    <!-- 7ème à 9ème -->
                     <div class="col-md-6">
                         <a href="7eme.html" class="class-card">
                             <div class="class-icon">
@@ -464,6 +533,7 @@
                             </div>
                         </a>
                     </div>
+                    <!-- Secondaire -->
                     <div class="col-md-6">
                         <a href="secondaire1.html" class="class-card">
                             <div class="class-icon">
@@ -536,13 +606,35 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function deconnexion() {
-            // Supprimer les données de session si nécessaire
             localStorage.removeItem('user');
             sessionStorage.clear();
-            
-            // Rediriger vers la page de connexion
             window.location.href = 'connexion.html';
         }
+
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('show');
+        }
+
+        // Fermer la sidebar en cliquant en dehors
+        document.addEventListener('click', function(event) {
+            const sidebar = document.querySelector('.sidebar');
+            const toggle = document.querySelector('.mobile-toggle');
+            
+            if (!sidebar.contains(event.target) && !toggle.contains(event.target)) {
+                sidebar.classList.remove('show');
+            }
+        });
+
+        // Animation des cartes de statistiques
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-10px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
     </script>
 </body>
 </html>

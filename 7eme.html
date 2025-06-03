@@ -701,18 +701,16 @@
                 id: 1,
                 name: "Groupe 1",
                 members: 4,
-                availableProjects: [
+                projects: [
                     {
+                        id: 1,
                         title: "CodeKids - Initiation à la Programmation",
                         description: "Une application interactive et ludique conçue pour initier les jeunes à la programmation. Inclut des mini-jeux éducatifs, des défis de code progressifs et un système de récompenses motivant."
                     },
                     {
+                        id: 2,
                         title: "RoboStart - Premier Pas en Robotique",
                         description: "Création d'un robot éducatif simple et programmable. Les élèves apprendront les bases de la robotique, de l'électronique et de la programmation à travers des exercices pratiques."
-                    },
-                    {
-                        title: "GameMaker - Création de Jeux",
-                        description: "Développement d'un jeu vidéo éducatif simple avec des outils adaptés aux débutants. Focus sur la créativité, la logique de jeu et les bases de la programmation visuelle."
                     }
                 ],
                 selectedProject: null,
@@ -722,18 +720,11 @@
                 id: 2,
                 name: "Groupe 2",
                 members: 4,
-                availableProjects: [
+                projects: [
                     {
+                        id: 1,
                         title: "WebWizard - Mon Premier Site Web",
                         description: "Création d'un site web interactif sur un thème éducatif. Les élèves découvriront les bases du HTML, CSS et JavaScript à travers des exercices guidés et créatifs."
-                    },
-                    {
-                        title: "AppInventor - Application Mobile",
-                        description: "Développement d'une application mobile simple et utile avec MIT App Inventor. Apprentissage des concepts de base de la programmation mobile et de l'interface utilisateur."
-                    },
-                    {
-                        title: "ScratchMaster - Animation Interactive",
-                        description: "Création d'une histoire interactive ou d'un jeu avec Scratch. Excellent projet pour développer la pensée logique et la créativité tout en s'initiant à la programmation."
                     }
                 ],
                 selectedProject: null,
@@ -743,16 +734,19 @@
                 id: 3,
                 name: "Groupe 3",
                 members: 4,
-                availableProjects: [
+                projects: [
                     {
+                        id: 1,
                         title: "MathGame - Apprentissage Ludique",
                         description: "Un jeu interactif qui rend l'apprentissage des mathématiques amusant. Inclut différents niveaux de difficulté, des défis quotidiens et un système de progression personnalisé."
                     },
                     {
+                        id: 2,
                         title: "ScienceQuest - Découverte Scientifique",
                         description: "Application interactive pour explorer les concepts scientifiques de base. Combine des expériences virtuelles, des quiz et des animations éducatives."
                     },
                     {
+                        id: 3,
                         title: "TechnoFun - Technologies du Quotidien",
                         description: "Projet d'initiation aux technologies modernes à travers des activités pratiques. Les élèves découvriront comment fonctionnent les appareils qu'ils utilisent au quotidien."
                     }
@@ -772,15 +766,20 @@
                 col.className = 'col-md-6 mb-4';
                 
                 let projectsHtml = '';
-                group.availableProjects.forEach((project, index) => {
+                group.projects.forEach((project, index) => {
                     projectsHtml += `
                         <div class="project-option mb-3 p-3 border rounded ${group.selectedProject === index ? 'bg-light' : ''}"
                              onclick="selectProject(${group.id}, ${index})">
-                            <h6 class="project-title">
-                                <i class="fas fa-project-diagram me-2"></i>
-                                ${project.title}
-                                ${group.selectedProject === index ? '<span class="badge bg-success ms-2">Sélectionné</span>' : ''}
-                            </h6>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h6 class="project-title">
+                                    <i class="fas fa-project-diagram me-2"></i>
+                                    ${project.title}
+                                    ${group.selectedProject === index ? '<span class="badge bg-success ms-2">Sélectionné</span>' : ''}
+                                </h6>
+                                <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteProject(${group.id}, ${index})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                             <p class="project-description mb-0 small">
                                 ${project.description}
                             </p>
@@ -804,7 +803,13 @@
                             ${group.members} membres
                         </div>
                         <div class="projects-container">
-                            <h5 class="mb-3">Projets disponibles :</h5>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0">Projets disponibles :</h5>
+                                <button class="btn btn-sm btn-success" onclick="addProject(${group.id})">
+                                    <i class="fas fa-plus me-1"></i>
+                                    Ajouter un projet
+                                </button>
+                            </div>
                             ${projectsHtml}
                         </div>
                         <div class="action-buttons mt-3">
@@ -854,8 +859,9 @@
                 projectTitle: formData.get('projectTitle'),
                 projectDescription: formData.get('projectDescription'),
                 status: formData.get('status'),
-                availableProjects: [
+                projects: [
                     {
+                        id: newProjectId,
                         title: formData.get('projectTitle'),
                         description: formData.get('projectDescription')
                     }
@@ -906,9 +912,9 @@
             const form = document.getElementById('groupForm');
             form.groupName.value = group.name;
             form.members.value = group.members;
-            if (group.availableProjects && group.availableProjects.length > 0) {
-                form.projectTitle.value = group.availableProjects[0].title;
-                form.projectDescription.value = group.availableProjects[0].description;
+            if (group.projects && group.projects.length > 0) {
+                form.projectTitle.value = group.projects[0].title;
+                form.projectDescription.value = group.projects[0].description;
             }
             form.status.value = group.status;
 
@@ -942,7 +948,8 @@
             group.name = formData.get('groupName');
             group.members = parseInt(formData.get('members'));
             group.status = formData.get('status');
-            group.availableProjects = [{
+            group.projects = [{
+                id: 1,
                 title: formData.get('projectTitle'),
                 description: formData.get('projectDescription')
             }];
@@ -1023,6 +1030,112 @@
                 addButton.disabled = false;
                 addButton.title = '';
             }
+        }
+
+        // Fonction pour ajouter un projet
+        function addProject(groupId) {
+            const group = groups.find(g => g.id === groupId);
+            if (!group) return;
+
+            // Modifier le titre du modal
+            document.querySelector('#addGroupModal .modal-title').innerHTML = `
+                <i class="fas fa-plus me-2"></i>
+                Ajouter un projet au ${group.name}
+            `;
+
+            // Préparer le formulaire
+            const form = document.getElementById('groupForm');
+            form.innerHTML = `
+                <div class="mb-3">
+                    <label class="form-label">Titre du projet</label>
+                    <input type="text" class="form-control" name="projectTitle" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description du projet</label>
+                    <textarea class="form-control" name="projectDescription" rows="3" required></textarea>
+                </div>
+            `;
+
+            // Modifier le bouton de sauvegarde
+            const saveButton = document.querySelector('#addGroupModal .btn-primary');
+            saveButton.onclick = () => saveProject(groupId);
+
+            // Ouvrir le modal
+            const modal = new bootstrap.Modal(document.getElementById('addGroupModal'));
+            modal.show();
+        }
+
+        // Fonction pour sauvegarder un projet
+        function saveProject(groupId) {
+            const group = groups.find(g => g.id === groupId);
+            if (!group) return;
+
+            const form = document.getElementById('groupForm');
+            const formData = new FormData(form);
+
+            const newProject = {
+                id: group.projects.length + 1,
+                title: formData.get('projectTitle'),
+                description: formData.get('projectDescription')
+            };
+
+            // Ajouter le projet au groupe
+            group.projects.push(newProject);
+
+            // Synchroniser avec le système de vote
+            const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
+            const projectKey = `7_g${groupId}p${newProject.id}`;
+
+            projectsData[projectKey] = {
+                title: newProject.title,
+                description: newProject.description,
+                votes: 0,
+                totalRating: 0,
+                group: `Groupe ${groupId}`,
+                class: '7ème'
+            };
+
+            localStorage.setItem('projectVotes', JSON.stringify(projectsData));
+
+            // Mettre à jour l'affichage
+            displayGroups();
+
+            // Fermer le modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addGroupModal'));
+            modal.hide();
+
+            // Réinitialiser le formulaire
+            form.reset();
+
+            // Afficher une notification
+            showNotification('Projet ajouté avec succès!', 'success');
+        }
+
+        // Fonction pour supprimer un projet
+        function deleteProject(groupId, projectIndex) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) return;
+
+            const group = groups.find(g => g.id === groupId);
+            if (!group) return;
+
+            // Supprimer le projet du groupe
+            const project = group.projects[projectIndex];
+            group.projects.splice(projectIndex, 1);
+
+            // Synchroniser avec le système de vote
+            const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
+            const projectKey = `7_g${groupId}p${project.id}`;
+
+            if (projectsData[projectKey]) {
+                delete projectsData[projectKey];
+                localStorage.setItem('projectVotes', JSON.stringify(projectsData));
+            }
+
+            // Mettre à jour l'affichage
+            displayGroups();
+
+            // Afficher une notification
+            showNotification('Projet supprimé avec succès!', 'success');
         }
 
         // Initialisation

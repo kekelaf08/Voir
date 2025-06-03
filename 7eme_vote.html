@@ -55,17 +55,11 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        .navbar {
-            background: var(--gradient-dark);
+        .header {
+            background: var(--bg-card);
+            padding: 2rem 0;
+            margin-bottom: 2rem;
             border-bottom: 1px solid var(--border-color);
-            padding: var(--spacing-md) 0;
-        }
-
-        .navbar-brand {
-            font-weight: 700;
-            font-size: var(--font-size-lg);
-            color: white !important;
-            letter-spacing: -0.5px;
         }
 
         .group-card {
@@ -96,13 +90,18 @@
             margin-bottom: 0.5rem;
         }
 
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
         .project-card {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--glass-border);
             border-radius: 12px;
             padding: 1.5rem;
             transition: transform 0.3s ease;
-            margin-bottom: 1rem;
         }
 
         .project-card:hover {
@@ -146,10 +145,11 @@
             opacity: 0.5;
         }
 
-        .vote-stats {
-            text-align: center;
+        .votes-count {
             color: var(--text-secondary);
             font-size: 0.9rem;
+            text-align: center;
+            margin-top: 0.5rem;
         }
 
         .back-button {
@@ -171,28 +171,16 @@
             transform: translateY(-2px);
         }
 
-        .votes-remaining {
-            color: var(--text-secondary);
-            font-size: 1rem;
-            margin-top: 1rem;
-        }
-
-        .votes-remaining i {
-            color: #ffd700;
-            margin-right: 0.5rem;
+        .vote-closed-message {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            margin-bottom: 1rem;
         }
 
         @media (max-width: 768px) {
-            .group-card {
-                margin-bottom: 1.5rem;
-            }
-
-            .project-card {
-                margin-bottom: 1rem;
-            }
-
-            .rating-star {
-                font-size: 1.25rem;
+            .projects-grid {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -209,29 +197,57 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-dark mb-4">
+    <div class="header">
         <div class="container">
-            <span class="navbar-brand">
-                        <i class="fas fa-star me-2"></i>
-                Vote des Projets - 7ème année
-            </span>
-            <a href="utilisateur.html" class="back-button">
-                <i class="fas fa-arrow-left"></i>
-                Retour
-            </a>
+            <div class="d-flex justify-content-between align-items-center">
+                <h1>Vote des Projets - 7ème année</h1>
+                <a href="utilisateur.html" class="back-button">
+                    <i class="fas fa-arrow-left"></i>
+                    Retour
+                </a>
+            </div>
+            <p class="text-secondary">Votez pour vos projets préférés</p>
+            <div class="votes-remaining">
+                <i class="fas fa-star text-warning"></i>
+                Votes restants : <span id="votesCount">3</span>
+            </div>
         </div>
-    </nav>
+    </div>
 
-    <div class="container">
-        <div class="votes-remaining mb-4">
-            <i class="fas fa-star"></i>
-            Votes restants : <span id="votesCount">3</span>
+    <div class="container vote-container">
+        <!-- Groupe 1 -->
+        <div class="group-card">
+            <div class="group-header">
+                <h2 class="group-title">Groupe 1</h2>
+                <p class="text-secondary">4 membres</p>
+            </div>
+            <div class="projects-grid" id="group1-projects">
+                <!-- Les projets seront ajoutés ici dynamiquement -->
+            </div>
         </div>
 
-        <div class="groups-container">
-            <!-- Les groupes seront ajoutés ici dynamiquement -->
+        <!-- Groupe 2 -->
+        <div class="group-card">
+            <div class="group-header">
+                <h2 class="group-title">Groupe 2</h2>
+                <p class="text-secondary">4 membres</p>
+            </div>
+            <div class="projects-grid" id="group2-projects">
+                <!-- Les projets seront ajoutés ici dynamiquement -->
+            </div>
         </div>
+
+        <!-- Groupe 3 -->
+        <div class="group-card">
+            <div class="group-header">
+                <h2 class="group-title">Groupe 3</h2>
+                <p class="text-secondary">4 membres</p>
+            </div>
+            <div class="projects-grid" id="group3-projects">
+                <!-- Les projets seront ajoutés ici dynamiquement -->
+            </div>
         </div>
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -242,6 +258,11 @@
         // Charger les projets depuis projects-data.js
         function loadProjects() {
             console.log('Chargement des projets...');
+            
+            // Vérifier si l'utilisateur a déjà voté
+            if (hasVotedInClass('7_')) {
+                disableVotingInClass();
+            }
             
             // Vérifier si les données sont initialisées
             if (!localStorage.getItem('projectVotes')) {
@@ -266,111 +287,98 @@
                     }
 
                     groups[groupKey].push({
-                        id: `g${groupId}p${projectId}`,
+                        id: key,
                         title: project.title,
                         description: project.description,
                         rating: project.votes > 0 ? project.totalRating / project.votes : 0,
-                        votes: project.votes
+                        votes: project.votes || 0,
+                        totalRating: project.totalRating || 0
                     });
                 }
             });
 
             console.log('Groupes préparés:', groups);
 
-            // Créer le HTML pour tous les groupes
-            const groupsContainer = document.querySelector('.groups-container');
-            groupsContainer.innerHTML = '';
-
-            if (Object.keys(groups).length === 0) {
-                console.log('Aucun groupe trouvé');
-                groupsContainer.innerHTML = `
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Aucun projet n'est disponible pour le moment.
-                    </div>
-                `;
-                return;
-            }
-
-            Object.entries(groups).forEach(([groupKey, projects]) => {
-                const groupNumber = groupKey.replace('group', '');
-                const groupCard = document.createElement('div');
-                groupCard.className = 'group-card mb-4';
-                
-                groupCard.innerHTML = `
-                    <div class="group-header">
-                        <h2 class="group-title">Groupe ${groupNumber}</h2>
-                        <p class="text-secondary">4 membres</p>
-                    </div>
-                    <div class="projects-grid">
-                        ${projects.map(project => `
-                            <div class="project-card project-option" data-group="${project.id.match(/g(\d+)/)[1]}" data-project="${project.id.match(/p(\d+)/)[1]}">
-                                <h3 class="project-title">${project.title}</h3>
-                                <p class="project-description">${project.description}</p>
-                                <div class="rating">
-                                    ${generateStarRating(project.id)}
-                                </div>
-                                <div class="vote-stats">
-                                    <span class="vote-average">Note moyenne: <span>${project.rating.toFixed(1)}</span></span>
-                                    <span class="vote-count">(<span>${project.votes}</span> votes)</span>
-                                </div>
+            // Mettre à jour l'affichage pour chaque groupe
+            Object.keys(groups).forEach(groupKey => {
+                const container = document.getElementById(`${groupKey}-projects`);
+                if (container) {
+                    container.innerHTML = groups[groupKey].map(project => `
+                        <div class="project-card project-option" data-project-id="${project.id}">
+                            <h3 class="project-title">${project.title}</h3>
+                            <p class="project-description">${project.description}</p>
+                            <div class="rating">
+                                ${generateStarRating(project.id)}
                             </div>
-                        `).join('')}
-                    </div>
-                `;
-                
-                groupsContainer.appendChild(groupCard);
+                            <div class="vote-stats text-center mt-3">
+                                <div class="vote-average mb-1">Note moyenne: <span class="fw-bold text-warning">${project.rating.toFixed(1)}</span> / 5</div>
+                                <div class="vote-count text-muted">${project.votes} vote${project.votes !== 1 ? 's' : ''}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
             });
-
-            // Mettre à jour l'apparence des étoiles
-            updateStarsAppearance();
         }
 
+        // Fonction pour générer les étoiles de notation
         function generateStarRating(projectId) {
             let html = '<div class="rating-container">';
             for (let i = 1; i <= 5; i++) {
                 html += `
-                    <input type="radio" id="${projectId}_star${i}" name="${projectId}_rating" value="${i}" class="d-none">
-                    <label for="${projectId}_star${i}" class="rating-star">
+                    <span class="rating-star" data-rating="${i}" onclick="rateProject('${projectId}', ${i})">
                         <i class="far fa-star"></i>
-                    </label>
+                    </span>
                 `;
             }
             html += '</div>';
             return html;
         }
 
-        function updateStarsAppearance() {
-            document.querySelectorAll('.rating-star').forEach(star => {
-                star.addEventListener('click', function() {
-                    const input = document.getElementById(this.getAttribute('for'));
-                    const projectCard = this.closest('.project-option');
-                    const groupId = projectCard.dataset.group;
-                    const projectId = projectCard.dataset.project;
-                    const rating = parseInt(input.value);
-                    
-                    console.log('Vote:', { groupId, projectId, rating });
-                    
-                    // Mettre à jour l'apparence des étoiles
-                    const stars = this.closest('.rating-container').querySelectorAll('.rating-star i');
-                    stars.forEach((s, index) => {
-                        s.className = index < rating ? 'fas fa-star' : 'far fa-star';
+        // Fonction pour noter un projet
+        function rateProject(projectId, rating) {
+            // Vérifier si l'utilisateur a déjà voté
+            if (hasVotedInClass('7_')) {
+                return;
+            }
+
+            const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
+            const project = projectsData[projectId];
+            
+            if (project) {
+                // Mettre à jour les votes
+                project.votes = (project.votes || 0) + 1;
+                project.totalRating = (project.totalRating || 0) + rating;
+                
+                // Sauvegarder les changements
+                localStorage.setItem('projectVotes', JSON.stringify(projectsData));
+                
+                // Marquer la classe comme votée
+                markClassAsVoted('7_');
+                
+                // Mettre à jour l'affichage
+                const container = document.querySelector(`[data-project-id="${projectId}"]`);
+                if (container) {
+                    // Mettre à jour les étoiles
+                    const stars = container.querySelectorAll('.rating-star i');
+                    stars.forEach((star, index) => {
+                        star.className = index < rating ? 'fas fa-star' : 'far fa-star';
                     });
                     
-                    // Enregistrer le vote
-                    const projectKey = `7_g${groupId}p${projectId}`;
-                    const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
-                    
-                    if (projectsData[projectKey]) {
-                        projectsData[projectKey].votes++;
-                        projectsData[projectKey].totalRating += rating;
-                        localStorage.setItem('projectVotes', JSON.stringify(projectsData));
-                        
-                        // Déclencher l'événement de vote
-                        window.dispatchEvent(new CustomEvent('projectVoted'));
-                    }
-                });
-            });
+                    // Mettre à jour les statistiques
+                    const average = project.totalRating / project.votes;
+                    const voteStats = container.querySelector('.vote-stats');
+                    voteStats.innerHTML = `
+                        <div class="vote-average mb-1">Note moyenne: <span class="fw-bold text-warning">${average.toFixed(1)}</span> / 5</div>
+                        <div class="vote-count text-muted">${project.votes} vote${project.votes !== 1 ? 's' : ''}</div>
+                    `;
+                }
+                
+                // Désactiver les votes après le vote
+                disableVotingInClass();
+                
+                // Déclencher l'événement de vote
+                window.dispatchEvent(new CustomEvent('projectVoted'));
+            }
         }
 
         // Charger les projets au chargement de la page

@@ -253,19 +253,19 @@
             </div>
             <div class="col-md-3">
                 <div class="stats-card">
-                    <div class="stats-number">12</div>
+                    <div class="stats-number">16</div>
                     <div class="stats-label">Élèves</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stats-card">
-                    <div class="stats-number">3</div>
+                    <div class="stats-number">4</div>
                     <div class="stats-label">Projets</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stats-card">
-                    <div class="stats-number">18</div>
+                    <div class="stats-number">20</div>
                     <div class="stats-label">Votes reçus</div>
                 </div>
             </div>
@@ -346,169 +346,61 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Utilitaire pour obtenir le préfixe de la classe
-        function getClassPrefix() {
-            return 'sec3_'; // Pour secondaire3.html
-        }
+        // Gestion du mode sombre
+        const themeToggle = document.getElementById('themeToggle');
+        const icon = themeToggle.querySelector('i');
+        
+        // Vérifier si le mode sombre est préféré par le système
+        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+        
+        // Vérifier le thème enregistré ou utiliser la préférence système
+        const savedTheme = localStorage.getItem('theme') || (prefersDarkScheme.matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        icon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
 
-        // Utilitaire pour obtenir le nom de la classe
-        function getClassName() {
-            return 'Secondaire 3';
-        }
+        // Gérer le clic sur le bouton
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        });
 
-        let groups = [];
-
-        function saveGroup() {
-            if (groups.length >= 6) {
-                showNotification('Impossible d\'ajouter plus de 5 projets!', 'danger');
-                return;
+        // Gérer le changement de préférence système
+        prefersDarkScheme.addEventListener('change', (e) => {
+            if (!localStorage.getItem('theme')) {
+                const newTheme = e.matches ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
             }
+        });
 
-            const form = document.getElementById('groupForm');
-            const formData = new FormData(form);
-
-            const newGroupId = groups.length + 1;
-            const newProjectId = 1;
-
-            // Créer le nouveau groupe pour l'affichage admin
-            const newGroup = {
-                id: Date.now(),
-                name: formData.get('groupName'),
-                members: parseInt(formData.get('members')),
-                projectTitle: formData.get('projectTitle'),
-                projectDescription: formData.get('projectDescription'),
-                status: formData.get('status'),
-                availableProjects: [
+        // Données des groupes (à remplacer par une vraie base de données)
+        let groups = [
+            {
+                id: 1,
+                name: "Groupe 1",
+                members: 4,
+                projects: [
                     {
-                        title: formData.get('projectTitle'),
-                        description: formData.get('projectDescription')
+                        id: 1,
+                        title: "EcoTech",
+                        description: "Solution technologique pour la gestion durable des ressources"
+                    },
+                    {
+                        id: 2,
+                        title: "SmartCity",
+                        description: "Système intelligent de gestion urbaine"
                     }
-                ]
-            };
-
-            // Ajouter le groupe à la liste des groupes
-            groups.push(newGroup);
-
-            // Synchroniser avec le système de vote
-            const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
-            const projectKey = `${getClassPrefix()}g${newGroupId}p${newProjectId}`;
-
-            // Ajouter le nouveau projet au format du système de vote
-            projectsData[projectKey] = {
-                title: formData.get('projectTitle'),
-                description: formData.get('projectDescription'),
-                votes: 0,
-                totalRating: 0,
-                group: `Groupe ${newGroupId}`,
-                class: getClassName()
-            };
-
-            // Sauvegarder dans localStorage
-            localStorage.setItem('projectVotes', JSON.stringify(projectsData));
-
-            // Mettre à jour l'affichage
-            displayGroups();
-            updateAddButton();
-
-            // Fermer le modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('addGroupModal'));
-            modal.hide();
-
-            // Réinitialiser le formulaire
-            form.reset();
-
-            showNotification('Groupe ajouté avec succès!', 'success');
-        }
-
-        function editGroup(id) {
-            const group = groups.find(g => g.id === id);
-            if (!group) return;
-
-            const form = document.getElementById('groupForm');
-            form.groupName.value = group.name;
-            form.members.value = group.members;
-            if (group.availableProjects && group.availableProjects.length > 0) {
-                form.projectTitle.value = group.availableProjects[0].title;
-                form.projectDescription.value = group.availableProjects[0].description;
+                ],
+                selectedProject: null,
+                status: "actif"
             }
-            form.status.value = group.status;
+        ];
 
-            // Stocker l'ID du groupe en cours d'édition
-            form.dataset.editingId = id;
-
-            const modal = new bootstrap.Modal(document.getElementById('addGroupModal'));
-            modal.show();
-
-            document.querySelector('#addGroupModal .modal-title').innerHTML = `
-                <i class="fas fa-edit me-2"></i>
-                Modifier le groupe
-            `;
-
-            const saveButton = document.querySelector('#addGroupModal .btn-primary');
-            saveButton.onclick = () => updateGroup(id);
-        }
-
-        function updateGroup(id) {
-            const group = groups.find(g => g.id === id);
-            if (!group) return;
-
-            const form = document.getElementById('groupForm');
-            const formData = new FormData(form);
-
-            // Mettre à jour le groupe dans la liste
-            group.name = formData.get('groupName');
-            group.members = parseInt(formData.get('members'));
-            group.status = formData.get('status');
-            group.availableProjects = [{
-                title: formData.get('projectTitle'),
-                description: formData.get('projectDescription')
-            }];
-
-            // Synchroniser avec le système de vote
-            const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
-            const groupIndex = groups.indexOf(group) + 1;
-            const projectKey = `${getClassPrefix()}g${groupIndex}p1`;
-
-            if (projectsData[projectKey]) {
-                projectsData[projectKey].title = formData.get('projectTitle');
-                projectsData[projectKey].description = formData.get('projectDescription');
-                localStorage.setItem('projectVotes', JSON.stringify(projectsData));
-            }
-
-            displayGroups();
-
-            const modal = bootstrap.Modal.getInstance(document.getElementById('addGroupModal'));
-            modal.hide();
-
-            form.reset();
-            delete form.dataset.editingId;
-
-            showNotification('Groupe modifié avec succès!', 'success');
-        }
-
-        function deleteGroup(id) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer ce groupe ?')) {
-                const groupIndex = groups.findIndex(g => g.id === id);
-                if (groupIndex !== -1) {
-                    // Supprimer le groupe de la liste
-                    groups.splice(groupIndex, 1);
-
-                    // Synchroniser avec le système de vote
-                    const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
-                    const projectKey = `${getClassPrefix()}g${groupIndex + 1}p1`;
-                    
-                    if (projectsData[projectKey]) {
-                        delete projectsData[projectKey];
-                        localStorage.setItem('projectVotes', JSON.stringify(projectsData));
-                    }
-
-                    displayGroups();
-                    updateAddButton();
-                    showNotification('Groupe supprimé avec succès!', 'success');
-                }
-            }
-        }
-
+        // Fonction pour afficher les groupes
         function displayGroups() {
             const groupsList = document.getElementById('groupsList');
             groupsList.innerHTML = '';
@@ -518,15 +410,20 @@
                 col.className = 'col-md-6 mb-4';
                 
                 let projectsHtml = '';
-                group.availableProjects.forEach((project, index) => {
+                group.projects.forEach((project, index) => {
                     projectsHtml += `
                         <div class="project-option mb-3 p-3 border rounded ${group.selectedProject === index ? 'bg-light' : ''}"
                              onclick="selectProject(${group.id}, ${index})">
-                            <h6 class="project-title">
-                                <i class="fas fa-project-diagram me-2"></i>
-                                ${project.title}
-                                ${group.selectedProject === index ? '<span class="badge bg-success ms-2">Sélectionné</span>' : ''}
-                            </h6>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h6 class="project-title">
+                                    <i class="fas fa-project-diagram me-2"></i>
+                                    ${project.title}
+                                    ${group.selectedProject === index ? '<span class="badge bg-success ms-2">Sélectionné</span>' : ''}
+                                </h6>
+                                <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteProject(${group.id}, ${index})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                             <p class="project-description mb-0 small">
                                 ${project.description}
                             </p>
@@ -537,18 +434,26 @@
                 col.innerHTML = `
                     <div class="group-card">
                         <div class="group-header">
-                            <div>
-                                <h5 class="group-title">${group.name}</h5>
-                                <span class="badge bg-${group.status === 'actif' ? 'success' : 'secondary'}">
-                                    ${group.status}
-                                </span>
+                            <div class="group-title">
+                                <i class="fas fa-users me-2"></i>
+                                ${group.name}
                             </div>
-                            <div class="group-members">
-                                <i class="fas fa-user me-2"></i>
-                                ${group.members} membres
-                            </div>
+                            <span class="badge bg-${group.status === 'actif' ? 'success' : 'secondary'}">
+                                ${group.status}
+                            </span>
+                        </div>
+                        <div class="group-members mb-3">
+                            <i class="fas fa-user me-2"></i>
+                            ${group.members} membres
                         </div>
                         <div class="projects-container">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0">Projets disponibles :</h5>
+                                <button class="btn btn-sm btn-success" onclick="addProject(${group.id})">
+                                    <i class="fas fa-plus me-1"></i>
+                                    Ajouter un projet
+                                </button>
+                            </div>
                             ${projectsHtml}
                         </div>
                         <div class="action-buttons mt-3">
@@ -567,17 +472,250 @@
             });
         }
 
-        function updateAddButton() {
-            const addButton = document.getElementById('addGroupBtn');
-            if (groups.length >= 5) {
-                addButton.disabled = true;
-                addButton.title = 'Maximum de 5 projets atteint';
-            } else {
-                addButton.disabled = false;
-                addButton.title = '';
+        // Fonction pour sélectionner un projet
+        function selectProject(groupId, projectIndex) {
+            const group = groups.find(g => g.id === groupId);
+            if (group) {
+                group.selectedProject = projectIndex;
+                displayGroups();
+                showNotification('Projet sélectionné avec succès!', 'success');
             }
         }
 
+        // Fonction pour sauvegarder un groupe
+        function saveGroup() {
+            if (groups.length >= 6) {
+                showNotification('Impossible d\'ajouter plus de 5 projets!', 'danger');
+                return;
+            }
+
+            const form = document.getElementById('groupForm');
+            const formData = new FormData(form);
+
+            const newGroupId = groups.length + 1;
+            const newProjectId = 1;
+
+            const newGroup = {
+                id: Date.now(),
+                name: formData.get('groupName'),
+                members: parseInt(formData.get('members')),
+                projects: [{
+                    id: newProjectId,
+                        title: formData.get('projectTitle'),
+                        description: formData.get('projectDescription')
+                }],
+                selectedProject: null,
+                status: formData.get('status')
+            };
+
+            groups.push(newGroup);
+
+            // Synchroniser avec le système de vote
+            const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
+            const projectKey = `sec3_g${newGroupId}p${newProjectId}`;
+
+            projectsData[projectKey] = {
+                title: formData.get('projectTitle'),
+                description: formData.get('projectDescription'),
+                votes: 0,
+                totalRating: 0,
+                group: `Groupe ${newGroupId}`,
+                class: 'Secondaire 3'
+            };
+
+            localStorage.setItem('projectVotes', JSON.stringify(projectsData));
+
+            displayGroups();
+            updateAddButton();
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addGroupModal'));
+            modal.hide();
+
+            form.reset();
+
+            showNotification('Groupe ajouté avec succès!', 'success');
+        }
+
+        // Fonction pour modifier un groupe
+        function editGroup(id) {
+            const group = groups.find(g => g.id === id);
+            if (!group) return;
+
+            const form = document.getElementById('groupForm');
+            form.groupName.value = group.name;
+            form.members.value = group.members;
+            if (group.projects && group.projects.length > 0) {
+                form.projectTitle.value = group.projects[0].title;
+                form.projectDescription.value = group.projects[0].description;
+            }
+            form.status.value = group.status;
+
+            form.dataset.editingId = id;
+
+            const modal = new bootstrap.Modal(document.getElementById('addGroupModal'));
+            modal.show();
+
+            document.querySelector('#addGroupModal .modal-title').innerHTML = `
+                <i class="fas fa-edit me-2"></i>
+                Modifier le groupe
+            `;
+
+            const saveButton = document.querySelector('#addGroupModal .btn-primary');
+            saveButton.onclick = () => updateGroup(id);
+        }
+
+        // Fonction pour mettre à jour un groupe
+        function updateGroup(id) {
+            const group = groups.find(g => g.id === id);
+            if (!group) return;
+
+            const form = document.getElementById('groupForm');
+            const formData = new FormData(form);
+
+            group.name = formData.get('groupName');
+            group.members = parseInt(formData.get('members'));
+            group.status = formData.get('status');
+            group.projects = [{
+                id: 1,
+                title: formData.get('projectTitle'),
+                description: formData.get('projectDescription')
+            }];
+
+            const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
+            const groupIndex = groups.indexOf(group) + 1;
+            const projectKey = `sec3_g${groupIndex}p1`;
+
+            if (projectsData[projectKey]) {
+                projectsData[projectKey].title = formData.get('projectTitle');
+                projectsData[projectKey].description = formData.get('projectDescription');
+                localStorage.setItem('projectVotes', JSON.stringify(projectsData));
+            }
+
+            displayGroups();
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addGroupModal'));
+            modal.hide();
+
+            form.reset();
+            delete form.dataset.editingId;
+
+            showNotification('Groupe modifié avec succès!', 'success');
+        }
+
+        // Fonction pour supprimer un groupe
+        function deleteGroup(id) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce groupe ?')) {
+                const groupIndex = groups.findIndex(g => g.id === id);
+                if (groupIndex !== -1) {
+                    const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
+                    const projectKey = `sec3_g${groupIndex + 1}p1`;
+                    
+                    if (projectsData[projectKey]) {
+                        delete projectsData[projectKey];
+                        localStorage.setItem('projectVotes', JSON.stringify(projectsData));
+                    }
+
+                    groups.splice(groupIndex, 1);
+                    displayGroups();
+                    updateAddButton();
+                    showNotification('Groupe supprimé avec succès!', 'success');
+                }
+            }
+        }
+
+        // Fonction pour ajouter un projet
+        function addProject(groupId) {
+            const group = groups.find(g => g.id === groupId);
+            if (!group) return;
+
+            document.querySelector('#addGroupModal .modal-title').innerHTML = `
+                <i class="fas fa-plus me-2"></i>
+                Ajouter un projet au ${group.name}
+            `;
+
+            const form = document.getElementById('groupForm');
+            form.innerHTML = `
+                <div class="mb-3">
+                    <label class="form-label">Titre du projet</label>
+                    <input type="text" class="form-control" name="projectTitle" required>
+                            </div>
+                <div class="mb-3">
+                    <label class="form-label">Description du projet</label>
+                    <textarea class="form-control" name="projectDescription" rows="3" required></textarea>
+                    </div>
+                `;
+
+            const saveButton = document.querySelector('#addGroupModal .btn-primary');
+            saveButton.onclick = () => saveProject(groupId);
+
+            const modal = new bootstrap.Modal(document.getElementById('addGroupModal'));
+            modal.show();
+        }
+
+        // Fonction pour sauvegarder un projet
+        function saveProject(groupId) {
+            const group = groups.find(g => g.id === groupId);
+            if (!group) return;
+
+            const form = document.getElementById('groupForm');
+            const formData = new FormData(form);
+
+            const newProject = {
+                id: group.projects.length + 1,
+                title: formData.get('projectTitle'),
+                description: formData.get('projectDescription')
+            };
+
+            group.projects.push(newProject);
+
+            const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
+            const projectKey = `sec3_g${groupId}p${newProject.id}`;
+
+            projectsData[projectKey] = {
+                title: newProject.title,
+                description: newProject.description,
+                votes: 0,
+                totalRating: 0,
+                group: `Groupe ${groupId}`,
+                class: 'Secondaire 3'
+            };
+
+            localStorage.setItem('projectVotes', JSON.stringify(projectsData));
+
+            displayGroups();
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addGroupModal'));
+            modal.hide();
+
+            form.reset();
+
+            showNotification('Projet ajouté avec succès!', 'success');
+        }
+
+        // Fonction pour supprimer un projet
+        function deleteProject(groupId, projectIndex) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) return;
+
+            const group = groups.find(g => g.id === groupId);
+            if (!group) return;
+
+            const project = group.projects[projectIndex];
+            group.projects.splice(projectIndex, 1);
+
+            const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
+            const projectKey = `sec3_g${groupId}p${project.id}`;
+
+            if (projectsData[projectKey]) {
+                delete projectsData[projectKey];
+                localStorage.setItem('projectVotes', JSON.stringify(projectsData));
+            }
+
+            displayGroups();
+
+            showNotification('Projet supprimé avec succès!', 'success');
+        }
+
+        // Fonction pour afficher une notification
         function showNotification(message, type = 'success') {
             const notification = document.createElement('div');
             notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
@@ -590,37 +728,22 @@
             setTimeout(() => notification.remove(), 3000);
         }
 
+        // Fonction pour mettre à jour l'état du bouton d'ajout
+        function updateAddButton() {
+            const addButton = document.getElementById('addGroupBtn');
+            if (groups.length >= 5) {
+                addButton.disabled = true;
+                addButton.title = 'Maximum de 5 projets atteint';
+            } else {
+                addButton.disabled = false;
+                addButton.title = '';
+            }
+        }
+
         // Initialisation
         document.addEventListener('DOMContentLoaded', () => {
             displayGroups();
             updateAddButton();
-        });
-
-        // Gestion du mode sombre
-        const themeToggle = document.getElementById('themeToggle');
-        const icon = themeToggle.querySelector('i');
-        
-        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-        
-        const savedTheme = localStorage.getItem('theme') || (prefersDarkScheme.matches ? 'dark' : 'light');
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        icon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-        });
-
-        prefersDarkScheme.addEventListener('change', (e) => {
-            if (!localStorage.getItem('theme')) {
-                const newTheme = e.matches ? 'dark' : 'light';
-                document.documentElement.setAttribute('data-theme', newTheme);
-                icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-            }
         });
     </script>
 </body>

@@ -319,7 +319,19 @@ class ClassManager {
     }
 
     viewGroups(className) {
-        document.querySelector('#groupes select').value = className;
+        // Sélectionner la classe dans le menu déroulant
+        const groupSelect = document.querySelector('#groupes select');
+        groupSelect.value = className;
+
+        // Afficher la section des groupes
+        const navigationManager = new NavigationManager();
+        navigationManager.showSection('groupes');
+
+        // Charger les groupes de la classe sélectionnée
+        const groupManager = new GroupManager();
+        groupManager.loadGroups(className);
+
+        // Faire défiler jusqu'à la section des groupes
         document.getElementById('groupes-section').scrollIntoView({ 
             behavior: 'smooth',
             block: 'start'
@@ -351,8 +363,86 @@ class GroupManager {
     }
 
     loadGroups(className) {
-        // À implémenter : Charger les groupes d'une classe
-        console.log(`Chargement des groupes pour la classe : ${className}`);
+        // Filtrer les groupes pour la classe sélectionnée
+        const classGroups = groups.filter(group => group.class === className);
+
+        // Récupérer le conteneur des groupes
+        const groupsContainer = document.querySelector('#groupes .groups-container');
+        if (!groupsContainer) {
+            console.error('Conteneur des groupes non trouvé');
+            return;
+        }
+
+        // Vider le conteneur
+        groupsContainer.innerHTML = '';
+
+        if (classGroups.length === 0) {
+            // Afficher un message si aucun groupe n'existe
+            groupsContainer.innerHTML = `
+                <div class="alert alert-info">
+                    Aucun groupe n'existe pour la classe ${className}
+                </div>
+            `;
+            return;
+        }
+
+        // Créer le tableau des groupes
+        const table = document.createElement('table');
+        table.className = 'table table-hover';
+        table.innerHTML = `
+            <thead>
+                <tr>
+                    <th>Nom du groupe</th>
+                    <th>Titre du projet</th>
+                    <th>Membres</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${classGroups.map(group => `
+                    <tr data-group-id="${group.id}">
+                        <td>${escapeHtml(group.name)}</td>
+                        <td>${escapeHtml(group.projectTitle)}</td>
+                        <td>${group.members}</td>
+                        <td>
+                            <span class="badge bg-${group.status === 'active' ? 'success' : 'warning'}">
+                                ${group.status === 'active' ? 'Actif' : 'En attente'}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-primary edit-group" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger delete-group" title="Supprimer">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        `;
+
+        // Ajouter le tableau au conteneur
+        groupsContainer.appendChild(table);
+
+        // Mettre à jour les compteurs
+        updateGroupCounters();
+
+        // Ajouter les gestionnaires d'événements pour les boutons d'action
+        table.querySelectorAll('.edit-group').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const groupId = e.target.closest('tr').dataset.groupId;
+                editGroup(groupId);
+            });
+        });
+
+        table.querySelectorAll('.delete-group').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const groupId = e.target.closest('tr').dataset.groupId;
+                deleteGroup(groupId);
+            });
+        });
     }
 }
 

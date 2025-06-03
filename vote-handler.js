@@ -143,4 +143,34 @@ class VoteHandler {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Initializing vote handler...');
     window.voteHandler = new VoteHandler();
-}); 
+});
+
+// Fonction pour vérifier si l'utilisateur a déjà voté dans une classe
+function hasVotedInClass(classPrefix) {
+    const userVotes = JSON.parse(localStorage.getItem('userVotes') || '{}');
+    return userVotes[classPrefix] === true;
+}
+
+// Fonction pour marquer une classe comme votée
+function markClassAsVoted(classPrefix) {
+    const userVotes = JSON.parse(localStorage.getItem('userVotes') || '{}');
+    userVotes[classPrefix] = true;
+    localStorage.setItem('userVotes', JSON.stringify(userVotes));
+}
+
+// Fonction pour désactiver les votes dans une classe
+function disableVotingInClass() {
+    document.querySelectorAll('.rating-star').forEach(star => {
+        star.style.pointerEvents = 'none';
+        star.style.opacity = '0.5';
+    });
+    
+    // Ajouter un message indiquant que l'utilisateur a déjà voté
+    if (!document.querySelector('.vote-message')) {
+        const header = document.querySelector('.votes-remaining');
+        const message = document.createElement('div');
+        message.className = 'alert alert-warning mt-3 vote-message';
+        message.innerHTML = '<i class="fas fa-info-circle me-2"></i>Vous avez déjà voté dans cette classe.';
+        header.parentNode.insertBefore(message, header.nextSibling);
+    }
+} 
