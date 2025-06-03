@@ -1,3 +1,5 @@
+import { getProjects, updateProjectVote, hasVotedInGroup, markGroupAsVoted } from './firebase-config.js';
+
 class VoteHandler {
     constructor() {
         this.currentClass = this.getCurrentClass();
@@ -22,7 +24,7 @@ class VoteHandler {
         return null;
     }
 
-    initializeVoteSystem() {
+    async initializeVoteSystem() {
         if (!this.currentClass) {
             console.error('Classe non déterminée, impossible d\'initialiser le système de vote');
             return;
@@ -34,58 +36,103 @@ class VoteHandler {
         });
 
         // Charger les votes existants
-        this.loadExistingVotes();
+        await this.loadExistingVotes();
+        await this.checkAndDisableVotedGroups();
         console.log('Current votes:', localStorage.getItem('projectVotes'));
     }
 
-    handleStarRating(event) {
+    async handleStarRating(event) {
         const radio = event.target;
         const rating = parseInt(radio.value);
         const projectOption = radio.closest('.project-option');
         const groupId = projectOption.dataset.group;
         const projectId = projectOption.dataset.project;
         const projectKey = `${this.currentClass}_g${groupId}p${projectId}`;
+        const groupKey = `${this.currentClass}_g${groupId}`;
+
+        // Vérifier si l'utilisateur a déjà voté pour ce groupe
+        if (await hasVotedInGroup(groupKey)) {
+            console.log('Vote déjà effectué pour ce groupe:', groupKey);
+            return;
+        }
 
         console.log('Vote registered:', { class: this.currentClass, groupId, projectId, rating, projectKey });
 
-        // Mettre à jour les votes dans le localStorage
-        this.updateProjectVotes(projectKey, rating);
+        // Mettre à jour les votes dans Firebase
+        const success = await updateProjectVote(projectKey, rating);
+        
+        if (success) {
+            // Marquer le groupe comme voté
+            await markGroupAsVoted(groupKey);
 
-        // Déclencher l'événement de mise à jour
-        this.triggerVoteUpdate();
+            // Désactiver les votes pour ce groupe
+            this.disableVotingInGroup(groupId);
 
-        // Mettre à jour l'affichage
-        this.updateStarDisplay(radio.closest('.rating'), rating);
-    }
+            // Mettre à jour l'affichage
+            this.updateStarDisplay(radio.closest('.rating'), rating);
 
-    updateProjectVotes(projectKey, rating) {
-        const votesData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
-        console.log('Current votes data:', votesData);
-
-        if (!votesData[projectKey]) {
-            votesData[projectKey] = {
-                title: this.getProjectTitle(projectKey),
-                votes: 0,
-                totalRating: 0,
-                class: this.currentClass
-            };
+            // Déclencher l'événement de mise à jour
+            this.triggerVoteUpdate();
         }
-
-        votesData[projectKey].votes += 1;
-        votesData[projectKey].totalRating += rating;
-
-        console.log('Updated votes data:', votesData);
-        localStorage.setItem('projectVotes', JSON.stringify(votesData));
     }
 
-    getProjectTitle(projectKey) {
-        const [_, groupId, projectId] = projectKey.match(/g(\d+)p(\d+)$/);
-        const projectElement = document.querySelector(`[data-group="${groupId}"][data-project="${projectId}"]`);
-        return projectElement ? projectElement.querySelector('.project-title').textContent : `Projet ${projectId}`;
+    async loadExistingVotes() {
+        const projects = await getProjects();
+        console.log('Loading existing votes:', projects);
+
+        Object.entries(projects).forEach(([projectKey, data]) => {
+            if (projectKey.startsWith(`${this.currentClass}_`)) {
+                const [_, groupId, projectId] = projectKey.match(/g(\d+)p(\d+)$/);
+                const averageRating = data.votes > 0 ? data.totalRating / data.votes : 0;
+
+                const projectOption = document.querySelector(`[data-group="${groupId}"][data-project="${projectId}"]`);
+                if (projectOption) {
+                    const ratingContainer = projectOption.querySelector('.rating');
+                    this.updateStarDisplay(ratingContainer, Math.round(averageRating));
+                    
+                    const voteStats = projectOption.querySelector('.vote-stats');
+                    if (voteStats) {
+                        const averageSpan = voteStats.querySelector('.vote-average span');
+                        const countSpan = voteStats.querySelector('.vote-count span');
+                        if (averageSpan) averageSpan.textContent = averageRating.toFixed(1);
+                        if (countSpan) countSpan.textContent = `${data.votes} vote${data.votes !== 1 ? 's' : ''}`;
+                    }
+                }
+            }
+        });
+    }
+
+    async checkAndDisableVotedGroups() {
+        document.querySelectorAll('.group-card').forEach(async groupCard => {
+            const groupId = groupCard.dataset.group;
+            const groupKey = `${this.currentClass}_g${groupId}`;
+            if (await hasVotedInGroup(groupKey)) {
+                this.disableVotingInGroup(groupId);
+            }
+        });
+    }
+
+    disableVotingInGroup(groupId) {
+        // Désactiver les étoiles pour tous les projets du groupe
+        const groupContainer = document.querySelector(`.group-card[data-group="${groupId}"]`);
+        if (groupContainer) {
+            const stars = groupContainer.querySelectorAll('.rating-star');
+            stars.forEach(star => {
+                star.style.pointerEvents = 'none';
+                star.style.opacity = '0.5';
+            });
+
+            // Ajouter un message indiquant que l'utilisateur a déjà voté
+            if (!groupContainer.querySelector('.vote-message')) {
+                const message = document.createElement('div');
+                message.className = 'alert alert-warning mt-3 vote-message';
+                message.innerHTML = '<i class="fas fa-info-circle me-2"></i>Vous avez déjà voté pour ce groupe.';
+                groupContainer.querySelector('.group-header').appendChild(message);
+            }
+        }
     }
 
     triggerVoteUpdate() {
-        // Créer et dispatcher un événement personnalisé
         const event = new CustomEvent('projectVoted', {
             detail: {
                 timestamp: new Date().getTime(),
@@ -97,44 +144,9 @@ class VoteHandler {
     }
 
     updateStarDisplay(container, rating) {
-        // Mettre à jour l'affichage visuel des étoiles
-        const stars = container.querySelectorAll('label i');
+        const stars = container.querySelectorAll('.rating-star i');
         stars.forEach((star, index) => {
-            if (index < rating) {
-                star.className = 'fas fa-star';
-            } else {
-                star.className = 'far fa-star';
-            }
-        });
-    }
-
-    loadExistingVotes() {
-        const votesData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
-        console.log('Loading existing votes:', votesData);
-
-        // Pour chaque projet avec des votes
-        Object.entries(votesData).forEach(([projectKey, data]) => {
-            // Vérifier si le vote appartient à la classe courante
-            if (projectKey.startsWith(`${this.currentClass}_`)) {
-                const [_, groupId, projectId] = projectKey.match(/g(\d+)p(\d+)$/);
-                const averageRating = data.totalRating / data.votes;
-
-                // Mettre à jour l'affichage des étoiles
-                const projectOption = document.querySelector(`[data-group="${groupId}"][data-project="${projectId}"]`);
-                if (projectOption) {
-                    const ratingContainer = projectOption.querySelector('.rating');
-                    this.updateStarDisplay(ratingContainer, Math.round(averageRating));
-                    
-                    // Mettre à jour les statistiques affichées
-                    const voteStats = projectOption.querySelector('.vote-stats');
-                    if (voteStats) {
-                        const averageSpan = voteStats.querySelector('.vote-average span');
-                        const countSpan = voteStats.querySelector('.vote-count span');
-                        if (averageSpan) averageSpan.textContent = averageRating.toFixed(1);
-                        if (countSpan) countSpan.textContent = `${data.votes} votes`;
-                    }
-                }
-            }
+            star.className = index < rating ? 'fas fa-star' : 'far fa-star';
         });
     }
 }

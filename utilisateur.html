@@ -681,7 +681,7 @@
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="vote-status-checker.js"></script>
+    <script src="vote-manager.js"></script>
     <script>
         function deconnexion() {
             // Supprimer les données de session si nécessaire
@@ -692,47 +692,21 @@
             window.location.href = 'connexion.html';
         }
 
-        // Exemple de données de projets
-        const projects = [
-            {
-                id: 1,
-                title: "CodeKids",
-                class: "7ème année",
-                description: "Application éducative pour apprendre à coder de manière ludique",
-                image: "placeholder-image.jpg",
-                voted: false
-            },
-            {
-                id: 2,
-                title: "EcoTracker",
-                class: "8ème année",
-                description: "Application de suivi et réduction de l'empreinte carbone",
-                image: "placeholder-image.jpg",
-                voted: false
-            },
-            {
-                id: 3,
-                title: "SmartHome",
-                class: "9ème année",
-                description: "Système domotique intelligent pour la maison",
-                image: "placeholder-image.jpg",
-                voted: true
-            }
-        ];
-
         // Fonction pour afficher les projets
-        function displayProjects(filteredProjects = projects) {
+        function displayProjects(filteredProjects = null) {
             const projectGrid = document.querySelector('.project-grid');
             projectGrid.innerHTML = '';
 
-            filteredProjects.forEach(project => {
+            const projects = filteredProjects || VoteManager.getProjects();
+            
+            projects.forEach(project => {
                 const card = document.createElement('div');
                 card.className = 'project-card';
                 card.innerHTML = `
-                    <img src="${project.image}" alt="${project.title}" class="project-image">
+                    <img src="${project.image || 'placeholder-image.jpg'}" alt="${project.title}" class="project-image">
                     <div class="project-title">${project.title}</div>
-                    <div class="text-primary mb-2">${project.class}</div>
-                            <p class="project-description">${project.description}</p>
+                    <div class="text-primary mb-2">${project.className}</div>
+                    <p class="project-description">${project.description}</p>
                     <button class="vote-button ${project.voted ? 'voted' : ''}" 
                             onclick="voteForProject(${project.id})"
                             ${project.voted ? 'disabled' : ''}>
@@ -745,56 +719,54 @@
 
         // Fonction pour voter
         function voteForProject(projectId) {
-            // Vérifier si les votes sont actifs
-            if (!window.voteStatusManager.isVotingActive()) {
-                window.voteStatusManager.showNotification('Les votes sont actuellement fermés.', 'warning');
+            const userId = localStorage.getItem('userId'); // À implémenter avec le système d'authentification
+            if (!userId) {
+                showToast('Veuillez vous connecter pour voter', 'warning');
                 return;
             }
 
-            const project = projects.find(p => p.id === projectId);
-            if (project && !project.voted) {
-                project.voted = true;
+            if (VoteManager.voteForProject(projectId, userId)) {
                 showToast('Vote enregistré avec succès !', 'success');
                 displayProjects();
                 updateVoteCount();
+            } else {
+                showToast('Vous avez déjà voté pour ce projet', 'warning');
             }
         }
 
-        // Fonction pour afficher les toasts
-        function showToast(message, type = 'success') {
-            const toast = document.createElement('div');
-            toast.className = 'toast show';
-            toast.innerHTML = `
-                <div class="toast-header">
-                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>
-                    <strong class="me-auto">Notification</strong>
-                    <button type="button" class="btn-close" onclick="this.parentElement.parentElement.remove()"></button>
-                </div>
-                <div class="toast-body">
-                    ${message}
-                </div>
-            `;
-            document.querySelector('.toast-container').appendChild(toast);
-            setTimeout(() => toast.remove(), 5000);
+        // Fonction pour mettre à jour le compteur de votes
+        function updateVoteCount() {
+            const stats = VoteManager.getStats();
+            const voteStatus = document.querySelector('.vote-status .progress-bar');
+            const voteCount = document.querySelector('.vote-status p strong');
+            
+            const maxVotes = 6; // Nombre maximum de votes autorisés
+            const votesUsed = stats.totalVotes;
+            const percentage = (votesUsed / maxVotes) * 100;
+            
+            voteStatus.style.width = `${percentage}%`;
+            voteCount.textContent = `${maxVotes - votesUsed}`;
         }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            displayProjects();
+            updateVoteCount();
+
+            // Gestionnaire de filtre
+            document.querySelector('select').addEventListener('change', (e) => {
+                const classId = e.target.value;
+                const filteredProjects = classId === 'all' 
+                    ? VoteManager.getProjects()
+                    : VoteManager.getProjects(classId);
+                displayProjects(filteredProjects);
+            });
+        });
 
         // Mobile sidebar toggle
         document.querySelector('.sidebar-toggle')?.addEventListener('click', () => {
             document.querySelector('.sidebar').classList.toggle('show');
         });
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            displayProjects();
-        });
-
-        function beforeVoting() {
-            if (!window.voteStatusManager.isVotingActive()) {
-                window.voteStatusManager.showNotification('Les votes sont actuellement fermés.', 'warning');
-                return false;
-            }
-            return true;
-        }
     </script>
 </body>
 </html>

@@ -663,6 +663,7 @@
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="vote-manager.js"></script>
     <script>
         // Gestion du mode sombre
         const themeToggle = document.getElementById('themeToggle');
@@ -695,88 +696,73 @@
             }
         });
 
-        // Données des groupes (à remplacer par une vraie base de données)
-        let groups = [
-            {
-                id: 1,
-                name: "Groupe 1",
-                members: 4,
-                projects: [
-                    {
-                        id: 1,
-                        title: "CodeKids - Initiation à la Programmation",
-                        description: "Une application interactive et ludique conçue pour initier les jeunes à la programmation. Inclut des mini-jeux éducatifs, des défis de code progressifs et un système de récompenses motivant."
-                    },
-                    {
-                        id: 2,
-                        title: "RoboStart - Premier Pas en Robotique",
-                        description: "Création d'un robot éducatif simple et programmable. Les élèves apprendront les bases de la robotique, de l'électronique et de la programmation à travers des exercices pratiques."
-                    }
-                ],
-                selectedProject: null,
-                status: "actif"
-            },
-            {
-                id: 2,
-                name: "Groupe 2",
-                members: 4,
-                projects: [
-                    {
-                        id: 1,
-                        title: "WebWizard - Mon Premier Site Web",
-                        description: "Création d'un site web interactif sur un thème éducatif. Les élèves découvriront les bases du HTML, CSS et JavaScript à travers des exercices guidés et créatifs."
-                    }
-                ],
-                selectedProject: null,
-                status: "actif"
-            },
-            {
-                id: 3,
-                name: "Groupe 3",
-                members: 4,
-                projects: [
-                    {
-                        id: 1,
-                        title: "MathGame - Apprentissage Ludique",
-                        description: "Un jeu interactif qui rend l'apprentissage des mathématiques amusant. Inclut différents niveaux de difficulté, des défis quotidiens et un système de progression personnalisé."
-                    },
-                    {
-                        id: 2,
-                        title: "ScienceQuest - Découverte Scientifique",
-                        description: "Application interactive pour explorer les concepts scientifiques de base. Combine des expériences virtuelles, des quiz et des animations éducatives."
-                    },
-                    {
-                        id: 3,
-                        title: "TechnoFun - Technologies du Quotidien",
-                        description: "Projet d'initiation aux technologies modernes à travers des activités pratiques. Les élèves découvriront comment fonctionnent les appareils qu'ils utilisent au quotidien."
-                    }
-                ],
-                selectedProject: null,
-                status: "actif"
-            }
-        ];
+        // Fonction pour sauvegarder un groupe
+        function saveGroup() {
+            const form = document.getElementById('groupForm');
+            const formData = new FormData(form);
+
+            // Créer le nouveau groupe
+            const group = {
+                name: formData.get('groupName'),
+                members: parseInt(formData.get('members')),
+                status: formData.get('status')
+            };
+
+            // Créer le projet associé
+            const project = {
+                title: formData.get('projectTitle'),
+                description: formData.get('projectDescription'),
+                classId: '7',
+                groupId: Date.now(), // Utiliser timestamp comme ID de groupe
+                className: '7ème année'
+            };
+
+            // Ajouter le groupe et le projet
+            VoteManager.addGroup('7', group);
+            VoteManager.addProject(project);
+
+            // Mettre à jour l'affichage
+            displayGroups();
+            updateDashboardStats();
+
+            // Fermer le modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addGroupModal'));
+            modal.hide();
+
+            // Réinitialiser le formulaire
+            form.reset();
+
+            // Afficher une notification
+            showNotification('Groupe et projet ajoutés avec succès!', 'success');
+        }
 
         // Fonction pour afficher les groupes
         function displayGroups() {
             const groupsList = document.getElementById('groupsList');
             groupsList.innerHTML = '';
 
+            // Obtenir les projets de la 7ème année
+            const projects = VoteManager.getProjects('7');
+            const groups = VoteManager.getGroups('7');
+
             groups.forEach(group => {
+                const groupProjects = projects.filter(p => p.groupId === group.id);
+                
                 const col = document.createElement('div');
                 col.className = 'col-md-6 mb-4';
                 
                 let projectsHtml = '';
-                group.projects.forEach((project, index) => {
+                groupProjects.forEach((project, index) => {
                     projectsHtml += `
-                        <div class="project-option mb-3 p-3 border rounded ${group.selectedProject === index ? 'bg-light' : ''}"
-                             onclick="selectProject(${group.id}, ${index})">
+                        <div class="project-option mb-3 p-3 border rounded ${group.selectedProject === project.id ? 'bg-light' : ''}"
+                             onclick="selectProject(${group.id}, ${project.id})">
                             <div class="d-flex justify-content-between align-items-start">
                                 <h6 class="project-title">
                                     <i class="fas fa-project-diagram me-2"></i>
                                     ${project.title}
-                                    ${group.selectedProject === index ? '<span class="badge bg-success ms-2">Sélectionné</span>' : ''}
+                                    ${group.selectedProject === project.id ? '<span class="badge bg-success ms-2">Sélectionné</span>' : ''}
                                 </h6>
-                                <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteProject(${group.id}, ${index})">
+                                <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteProject(${project.id})">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -828,320 +814,50 @@
             });
         }
 
-        // Fonction pour sélectionner un projet
-        function selectProject(groupId, projectIndex) {
-            const group = groups.find(g => g.id === groupId);
-            if (group) {
-                group.selectedProject = projectIndex;
+        // Fonction pour supprimer un projet
+        function deleteProject(projectId) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) {
+                if (VoteManager.deleteProject(projectId)) {
                 displayGroups();
-                showNotification('Projet sélectionné avec succès!', 'success');
-            }
-        }
-
-        // Fonction pour sauvegarder un groupe
-        function saveGroup() {
-            if (groups.length >= 6) {
-                showNotification('Impossible d\'ajouter plus de 5 projets!', 'danger');
-                return;
-            }
-
-            const form = document.getElementById('groupForm');
-            const formData = new FormData(form);
-
-            const newGroupId = groups.length + 1;
-            const newProjectId = 1; // Pour l'instant, un projet par groupe
-
-            // Créer le nouveau groupe pour l'affichage admin
-            const newGroup = {
-                id: Date.now(),
-                name: formData.get('groupName'),
-                members: parseInt(formData.get('members')),
-                projectTitle: formData.get('projectTitle'),
-                projectDescription: formData.get('projectDescription'),
-                status: formData.get('status'),
-                projects: [
-                    {
-                        id: newProjectId,
-                        title: formData.get('projectTitle'),
-                        description: formData.get('projectDescription')
-                    }
-                ]
-            };
-
-            // Ajouter le groupe à la liste des groupes
-            groups.push(newGroup);
-
-            // Synchroniser avec le système de vote
-            const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
-            const projectKey = `7_g${newGroupId}p${newProjectId}`;
-
-            // Ajouter le nouveau projet au format du système de vote
-            projectsData[projectKey] = {
-                title: formData.get('projectTitle'),
-                description: formData.get('projectDescription'),
-                votes: 0,
-                totalRating: 0,
-                group: `Groupe ${newGroupId}`,
-                class: '7ème'
-            };
-
-            // Sauvegarder dans localStorage
-            localStorage.setItem('projectVotes', JSON.stringify(projectsData));
-
-            // Mettre à jour l'affichage
-            displayGroups();
-            updateAddButton();
-
-            // Fermer le modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('addGroupModal'));
-            modal.hide();
-
-            // Réinitialiser le formulaire
-            form.reset();
-
-            // Afficher une notification
-            showNotification('Groupe ajouté avec succès!', 'success');
-        }
-
-        // Fonction pour modifier un groupe
-        function editGroup(id) {
-            const group = groups.find(g => g.id === id);
-            if (!group) return;
-
-            // Remplir le formulaire
-            const form = document.getElementById('groupForm');
-            form.groupName.value = group.name;
-            form.members.value = group.members;
-            if (group.projects && group.projects.length > 0) {
-                form.projectTitle.value = group.projects[0].title;
-                form.projectDescription.value = group.projects[0].description;
-            }
-            form.status.value = group.status;
-
-            // Stocker l'ID du groupe en cours d'édition
-            form.dataset.editingId = id;
-
-            // Ouvrir le modal
-            const modal = new bootstrap.Modal(document.getElementById('addGroupModal'));
-            modal.show();
-
-            // Modifier le titre du modal
-            document.querySelector('#addGroupModal .modal-title').innerHTML = `
-                <i class="fas fa-edit me-2"></i>
-                Modifier le groupe
-            `;
-
-            // Modifier le bouton de sauvegarde
-            const saveButton = document.querySelector('#addGroupModal .btn-primary');
-            saveButton.onclick = () => updateGroup(id);
-        }
-
-        // Fonction pour mettre à jour un groupe
-        function updateGroup(id) {
-            const group = groups.find(g => g.id === id);
-            if (!group) return;
-
-            const form = document.getElementById('groupForm');
-            const formData = new FormData(form);
-
-            // Mettre à jour le groupe dans la liste
-            group.name = formData.get('groupName');
-            group.members = parseInt(formData.get('members'));
-            group.status = formData.get('status');
-            group.projects = [{
-                id: 1,
-                title: formData.get('projectTitle'),
-                description: formData.get('projectDescription')
-            }];
-
-            // Synchroniser avec le système de vote
-            const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
-            const groupIndex = groups.indexOf(group) + 1;
-            const projectKey = `7_g${groupIndex}p1`;
-
-            // Mettre à jour le projet dans le système de vote
-            if (projectsData[projectKey]) {
-                projectsData[projectKey].title = formData.get('projectTitle');
-                projectsData[projectKey].description = formData.get('projectDescription');
-                localStorage.setItem('projectVotes', JSON.stringify(projectsData));
-            }
-
-            // Mettre à jour l'affichage
-            displayGroups();
-
-            // Fermer le modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('addGroupModal'));
-            modal.hide();
-
-            // Réinitialiser le formulaire
-            form.reset();
-            delete form.dataset.editingId;
-
-            // Afficher une notification
-            showNotification('Groupe modifié avec succès!', 'success');
-        }
-
-        // Fonction pour supprimer un groupe
-        function deleteGroup(id) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer ce groupe ?')) {
-                const groupIndex = groups.findIndex(g => g.id === id);
-                if (groupIndex !== -1) {
-                    // Supprimer le groupe de la liste
-                    groups.splice(groupIndex, 1);
-
-                    // Synchroniser avec le système de vote
-                    const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
-                    const projectKey = `7_g${groupIndex + 1}p1`;
-                    
-                    // Supprimer le projet du système de vote
-                    if (projectsData[projectKey]) {
-                        delete projectsData[projectKey];
-                        localStorage.setItem('projectVotes', JSON.stringify(projectsData));
-                    }
-
-                    // Mettre à jour l'affichage
-                    displayGroups();
-                    updateAddButton();
-                    showNotification('Groupe supprimé avec succès!', 'success');
+                    updateDashboardStats();
+                    showNotification('Projet supprimé avec succès!', 'success');
                 }
             }
         }
 
-        // Fonction pour afficher une notification
-        function showNotification(message, type = 'success') {
-            const notification = document.createElement('div');
-            notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-            notification.style.cssText = 'top: 20px; right: 20px; z-index: 1050;';
-            notification.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            document.body.appendChild(notification);
-            setTimeout(() => notification.remove(), 3000);
+        // Fonction pour mettre à jour les statistiques
+        function updateDashboardStats() {
+            const stats = VoteManager.getStats();
+            const projects = VoteManager.getProjects('7');
+            const groups = VoteManager.getGroups('7');
+
+            // Mettre à jour les cartes de statistiques
+            document.querySelectorAll('.stats-card').forEach(card => {
+                const label = card.querySelector('.stats-label').textContent.toLowerCase();
+                if (label.includes('groupes')) {
+                    card.querySelector('.stats-number').textContent = groups.length;
+                } else if (label.includes('élèves')) {
+                    card.querySelector('.stats-number').textContent = 
+                        groups.reduce((sum, g) => sum + g.members, 0);
+                } else if (label.includes('projets')) {
+                    card.querySelector('.stats-number').textContent = projects.length;
+                } else if (label.includes('votes')) {
+                    card.querySelector('.stats-number').textContent = 
+                        projects.reduce((sum, p) => sum + (p.votes || 0), 0);
+                }
+            });
         }
 
-        // Fonction pour mettre à jour l'état du bouton d'ajout
-        function updateAddButton() {
-            const addButton = document.getElementById('addGroupBtn');
-            if (groups.length >= 5) {
-                addButton.disabled = true;
-                addButton.title = 'Maximum de 5 projets atteint';
-            } else {
-                addButton.disabled = false;
-                addButton.title = '';
-            }
-        }
-
-        // Fonction pour ajouter un projet
-        function addProject(groupId) {
-            const group = groups.find(g => g.id === groupId);
-            if (!group) return;
-
-            // Modifier le titre du modal
-            document.querySelector('#addGroupModal .modal-title').innerHTML = `
-                <i class="fas fa-plus me-2"></i>
-                Ajouter un projet au ${group.name}
-            `;
-
-            // Préparer le formulaire
-            const form = document.getElementById('groupForm');
-            form.innerHTML = `
-                <div class="mb-3">
-                    <label class="form-label">Titre du projet</label>
-                    <input type="text" class="form-control" name="projectTitle" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Description du projet</label>
-                    <textarea class="form-control" name="projectDescription" rows="3" required></textarea>
-                </div>
-            `;
-
-            // Modifier le bouton de sauvegarde
-            const saveButton = document.querySelector('#addGroupModal .btn-primary');
-            saveButton.onclick = () => saveProject(groupId);
-
-            // Ouvrir le modal
-            const modal = new bootstrap.Modal(document.getElementById('addGroupModal'));
-            modal.show();
-        }
-
-        // Fonction pour sauvegarder un projet
-        function saveProject(groupId) {
-            const group = groups.find(g => g.id === groupId);
-            if (!group) return;
-
-            const form = document.getElementById('groupForm');
-            const formData = new FormData(form);
-
-            const newProject = {
-                id: group.projects.length + 1,
-                title: formData.get('projectTitle'),
-                description: formData.get('projectDescription')
-            };
-
-            // Ajouter le projet au groupe
-            group.projects.push(newProject);
-
-            // Synchroniser avec le système de vote
-            const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
-            const projectKey = `7_g${groupId}p${newProject.id}`;
-
-            projectsData[projectKey] = {
-                title: newProject.title,
-                description: newProject.description,
-                votes: 0,
-                totalRating: 0,
-                group: `Groupe ${groupId}`,
-                class: '7ème'
-            };
-
-            localStorage.setItem('projectVotes', JSON.stringify(projectsData));
-
-            // Mettre à jour l'affichage
+        // Écouter les mises à jour du VoteManager
+        window.addEventListener('voteManagerUpdate', () => {
             displayGroups();
-
-            // Fermer le modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('addGroupModal'));
-            modal.hide();
-
-            // Réinitialiser le formulaire
-            form.reset();
-
-            // Afficher une notification
-            showNotification('Projet ajouté avec succès!', 'success');
-        }
-
-        // Fonction pour supprimer un projet
-        function deleteProject(groupId, projectIndex) {
-            if (!confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) return;
-
-            const group = groups.find(g => g.id === groupId);
-            if (!group) return;
-
-            // Supprimer le projet du groupe
-            const project = group.projects[projectIndex];
-            group.projects.splice(projectIndex, 1);
-
-            // Synchroniser avec le système de vote
-            const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
-            const projectKey = `7_g${groupId}p${project.id}`;
-
-            if (projectsData[projectKey]) {
-                delete projectsData[projectKey];
-                localStorage.setItem('projectVotes', JSON.stringify(projectsData));
-            }
-
-            // Mettre à jour l'affichage
-            displayGroups();
-
-            // Afficher une notification
-            showNotification('Projet supprimé avec succès!', 'success');
-        }
+            updateDashboardStats();
+        });
 
         // Initialisation
         document.addEventListener('DOMContentLoaded', () => {
             displayGroups();
-            updateAddButton();
+            updateDashboardStats();
         });
     </script>
 </body>

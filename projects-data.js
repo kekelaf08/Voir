@@ -1,5 +1,5 @@
 // Données initiales des projets
-const initialProjects = {
+export const initialProjects = {
     // 7ème année
     '7_g1p1': {
         title: 'EcoSphere',
@@ -109,7 +109,9 @@ const initialProjects = {
     }
 };
 
-// Initialiser les données dans le localStorage si elles n'existent pas
-if (!localStorage.getItem('projectVotes')) {
-    localStorage.setItem('projectVotes', JSON.stringify(initialProjects));
-} 
+import { initializeProjects } from './firebase-config.js';
+
+// Initialiser les données dans Firebase
+document.addEventListener('DOMContentLoaded', async () => {
+    await initializeProjects(initialProjects);
+}); 

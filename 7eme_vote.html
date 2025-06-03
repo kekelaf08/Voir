@@ -216,7 +216,7 @@
 
     <div class="container vote-container">
         <!-- Groupe 1 -->
-        <div class="group-card">
+        <div class="group-card" data-group="1">
             <div class="group-header">
                 <h2 class="group-title">Groupe 1</h2>
                 <p class="text-secondary">4 membres</p>
@@ -227,7 +227,7 @@
         </div>
 
         <!-- Groupe 2 -->
-        <div class="group-card">
+        <div class="group-card" data-group="2">
             <div class="group-header">
                 <h2 class="group-title">Groupe 2</h2>
                 <p class="text-secondary">4 membres</p>
@@ -238,7 +238,7 @@
         </div>
 
         <!-- Groupe 3 -->
-        <div class="group-card">
+        <div class="group-card" data-group="3">
             <div class="group-header">
                 <h2 class="group-title">Groupe 3</h2>
                 <p class="text-secondary">4 membres</p>
@@ -251,75 +251,8 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="projects-data.js"></script>
-    <script src="vote-handler.js"></script>
-    <script src="vote-status-checker.js"></script>
+    <script src="vote-manager.js"></script>
     <script>
-        // Charger les projets depuis projects-data.js
-        function loadProjects() {
-            console.log('Chargement des projets...');
-            
-            // Vérifier si l'utilisateur a déjà voté
-            if (hasVotedInClass('7_')) {
-                disableVotingInClass();
-            }
-            
-            // Vérifier si les données sont initialisées
-            if (!localStorage.getItem('projectVotes')) {
-                console.log('Initialisation des données...');
-                localStorage.setItem('projectVotes', JSON.stringify(initialProjects));
-            }
-            
-            const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
-            console.log('Données chargées:', projectsData);
-            
-            const groups = {};
-
-            // Parcourir tous les projets et filtrer ceux de la 7ème année
-            Object.entries(projectsData).forEach(([key, project]) => {
-                if (key.startsWith('7_')) {
-                    console.log('Projet trouvé:', key, project);
-                    const [_, groupId, projectId] = key.match(/g(\d+)p(\d+)$/);
-                    const groupKey = `group${groupId}`;
-                    
-                    if (!groups[groupKey]) {
-                        groups[groupKey] = [];
-                    }
-
-                    groups[groupKey].push({
-                        id: key,
-                        title: project.title,
-                        description: project.description,
-                        rating: project.votes > 0 ? project.totalRating / project.votes : 0,
-                        votes: project.votes || 0,
-                        totalRating: project.totalRating || 0
-                    });
-                }
-            });
-
-            console.log('Groupes préparés:', groups);
-
-            // Mettre à jour l'affichage pour chaque groupe
-            Object.keys(groups).forEach(groupKey => {
-                const container = document.getElementById(`${groupKey}-projects`);
-                if (container) {
-                    container.innerHTML = groups[groupKey].map(project => `
-                        <div class="project-card project-option" data-project-id="${project.id}">
-                            <h3 class="project-title">${project.title}</h3>
-                            <p class="project-description">${project.description}</p>
-                            <div class="rating">
-                                ${generateStarRating(project.id)}
-                            </div>
-                            <div class="vote-stats text-center mt-3">
-                                <div class="vote-average mb-1">Note moyenne: <span class="fw-bold text-warning">${project.rating.toFixed(1)}</span> / 5</div>
-                                <div class="vote-count text-muted">${project.votes} vote${project.votes !== 1 ? 's' : ''}</div>
-                            </div>
-                        </div>
-                    `).join('');
-                }
-            });
-        }
-
         // Fonction pour générer les étoiles de notation
         function generateStarRating(projectId) {
             let html = '<div class="rating-container">';
@@ -334,64 +267,132 @@
             return html;
         }
 
-        // Fonction pour noter un projet
-        function rateProject(projectId, rating) {
-            // Vérifier si l'utilisateur a déjà voté
-            if (hasVotedInClass('7_')) {
-                return;
-            }
-
-            const projectsData = JSON.parse(localStorage.getItem('projectVotes') || '{}');
-            const project = projectsData[projectId];
+        // Fonction pour charger les projets depuis le VoteManager
+        function loadProjects() {
+            console.log('Chargement des projets...');
             
-            if (project) {
-                // Mettre à jour les votes
-                project.votes = (project.votes || 0) + 1;
-                project.totalRating = (project.totalRating || 0) + rating;
-                
-                // Sauvegarder les changements
-                localStorage.setItem('projectVotes', JSON.stringify(projectsData));
-                
-                // Marquer la classe comme votée
-                markClassAsVoted('7_');
-                
-                // Mettre à jour l'affichage
-                const container = document.querySelector(`[data-project-id="${projectId}"]`);
-                if (container) {
-                    // Mettre à jour les étoiles
-                    const stars = container.querySelectorAll('.rating-star i');
-                    stars.forEach((star, index) => {
-                        star.className = index < rating ? 'fas fa-star' : 'far fa-star';
-                    });
-                    
-                    // Mettre à jour les statistiques
-                    const average = project.totalRating / project.votes;
-                    const voteStats = container.querySelector('.vote-stats');
-                    voteStats.innerHTML = `
-                        <div class="vote-average mb-1">Note moyenne: <span class="fw-bold text-warning">${average.toFixed(1)}</span> / 5</div>
-                        <div class="vote-count text-muted">${project.votes} vote${project.votes !== 1 ? 's' : ''}</div>
-                    `;
+            // Obtenir tous les projets de la 7ème année
+            const projects = VoteManager.getProjects('7');
+            console.log('Projets chargés:', projects);
+
+            // Organiser les projets par groupe (1, 2, 3)
+            const groups = {
+                1: [],
+                2: [],
+                3: []
+            };
+            
+            // Répartir les projets dans les groupes
+            projects.forEach(project => {
+                const groupId = project.groupId % 3 + 1; // Assurer que groupId est entre 1 et 3
+                if (!groups[groupId]) {
+                    groups[groupId] = [];
                 }
-                
-                // Désactiver les votes après le vote
-                disableVotingInClass();
-                
-                // Déclencher l'événement de vote
-                window.dispatchEvent(new CustomEvent('projectVoted'));
+                groups[groupId].push(project);
+            });
+
+            // Mettre à jour l'affichage pour chaque groupe
+            Object.keys(groups).forEach(groupId => {
+                const container = document.getElementById(`group${groupId}-projects`);
+                if (container) {
+                    if (groups[groupId].length === 0) {
+                        container.innerHTML = '<p class="text-muted">Aucun projet dans ce groupe</p>';
+                    } else {
+                        container.innerHTML = groups[groupId].map(project => `
+                            <div class="project-card project-option" data-project-id="${project.id}">
+                                <h3 class="project-title">${project.title}</h3>
+                                <p class="project-description">${project.description}</p>
+                                <div class="rating">
+                                    ${generateStarRating(project.id)}
+                                </div>
+                                <div class="vote-stats text-center mt-3">
+                                    <div class="vote-average mb-1">
+                                        Note moyenne: 
+                                        <span class="fw-bold text-warning">
+                                            ${project.votes > 0 ? (project.totalRating / project.votes).toFixed(1) : '0.0'}
+                                        </span> / 5
+                                    </div>
+                                    <div class="vote-count text-muted">
+                                        ${project.votes || 0} vote${project.votes !== 1 ? 's' : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+
+                        // Mettre à jour l'apparence des étoiles pour les projets déjà votés
+                        const userId = localStorage.getItem('userId');
+                        if (userId) {
+                            groups[groupId].forEach(project => {
+                                if (project.voters && project.voters.includes(userId)) {
+                                    const projectCard = container.querySelector(`[data-project-id="${project.id}"]`);
+                                    if (projectCard) {
+                                        const stars = projectCard.querySelectorAll('.rating-star i');
+                                        const rating = project.totalRating / project.votes;
+                                        stars.forEach((star, index) => {
+                                            star.className = index < rating ? 'fas fa-star' : 'far fa-star';
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+            });
+
+            // Mettre à jour le compteur de votes restants
+            updateVotesRemaining();
+        }
+
+        // Fonction pour voter pour un projet
+        function rateProject(projectId, rating) {
+            const userId = localStorage.getItem('userId') || Date.now().toString();
+            localStorage.setItem('userId', userId);
+
+            if (VoteManager.voteForProject(projectId, userId, rating)) {
+                showNotification('Vote enregistré avec succès!', 'success');
+                loadProjects();
+            } else {
+                showNotification('Vous avez déjà voté pour ce projet', 'warning');
             }
         }
 
-        // Charger les projets au chargement de la page
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('Page chargée, chargement des projets...');
+        // Fonction pour mettre à jour le nombre de votes restants
+        function updateVotesRemaining() {
+            const userId = localStorage.getItem('userId');
+            if (userId) {
+                const projects = VoteManager.getProjects('7');
+                const votedProjects = projects.filter(p => p.voters && p.voters.includes(userId));
+                const votesRemaining = Math.max(0, 3 - votedProjects.length);
+                document.getElementById('votesCount').textContent = votesRemaining;
+            }
+        }
+
+        // Écouter les changements dans le localStorage
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'voteManagerState') {
+                loadProjects();
+            }
+        });
+
+        // Écouter les mises à jour du VoteManager
+        window.addEventListener('voteManagerUpdate', () => {
             loadProjects();
         });
 
-        // Recharger les projets quand un vote est enregistré
-        window.addEventListener('projectVoted', () => {
-            console.log('Vote enregistré, rechargement des projets...');
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
             loadProjects();
         });
+
+        // Fonction pour afficher une notification
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} position-fixed top-0 end-0 m-3`;
+            notification.style.zIndex = '1050';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
     </script>
 </body>
 </html> 
